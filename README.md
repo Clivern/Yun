@@ -16,16 +16,6 @@
 </p>
 
 
-### Getting Started
-
-To install Badger Server, Use the following script:
-
-```zsh
-$ bash < <(curl -s https://raw.githubusercontent.com/Clivern/Badger/main/deployment/ubuntu/install.sh)
-
-$ bash < <(curl -s https://raw.githubusercontent.com/Clivern/Badger/main/deployment/ubuntu/upgrade.sh)
-```
-
 ### Versioning
 
 For transparency into our release cycle and in striving to maintain backward compatibility, Badger is maintained under the [Semantic Versioning guidelines](https://semver.org/) and release process is predictable and business-friendly.
