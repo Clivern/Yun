@@ -8,7 +8,7 @@ RUN apt-get update
 
 WORKDIR /app
 
-RUN curl -sL https://github.com/Uptimedog/Badger/releases/download/v${BADGER_VERSION}/badger_Linux_x86_64.tar.gz | tar xz
+RUN curl -sL https://github.com/Clivern/Badger/releases/download/v${BADGER_VERSION}/badger_Linux_x86_64.tar.gz | tar xz
 RUN rm LICENSE
 RUN rm README.md
 

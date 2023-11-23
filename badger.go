@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/uptimedog/badger/cmd"
+	"github.com/clivern/badger/cmd"
 )
 
 var (

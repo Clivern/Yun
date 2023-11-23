@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 	Short: `🐺 A Microservice For LGTM Stack Testing.
 
 If you have any suggestions, bug reports, or annoyances please report
-them to our issue tracker at <https://github.com/uptimedog/badger/issues>`,
+them to our issue tracker at <https://github.com/clivern/badger/issues>`,
 }
 
 // Execute runs cmd tool

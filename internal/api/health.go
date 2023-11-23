@@ -2,21 +2,21 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-package controller
+package api
 
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
 // HealthAction Controller
-func HealthAction(c echo.Context) error {
+func HealthAction(c *gin.Context) {
 
 	log.Info(`Incoming Request to Health Action`)
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
+	c.JSON(http.StatusOK, map[string]interface{}{
 		"status": "ok",
 	})
 }

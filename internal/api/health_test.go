@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-package controller
+package api
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/franela/goblin"
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 )
 
 // TestUnitHealthEndpoint
@@ -20,17 +20,16 @@ func TestUnitHealthEndpoint(t *testing.T) {
 
 	g.Describe("#HealthAction", func() {
 		g.It("It should satisfy all provided test cases", func() {
-			e := echo.New()
+			gin.SetMode(gin.TestMode)
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
 			req := httptest.NewRequest(http.MethodGet, "/_health", nil)
-			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-			c.SetPath("/_health")
+			c.Request = req
 
-			err := HealthAction(c)
+			HealthAction(c)
 
-			g.Assert(err).Equal(nil)
-			g.Assert(rec.Code).Equal(http.StatusOK)
-			g.Assert(strings.TrimSpace(rec.Body.String())).Equal(`{"status":"ok"}`)
+			g.Assert(w.Code).Equal(http.StatusOK)
+			g.Assert(strings.TrimSpace(w.Body.String())).Equal(`{"status":"ok"}`)
 		})
 	})
 }

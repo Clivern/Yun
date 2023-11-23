@@ -1,15 +1,15 @@
 <p align="center">
     <img alt="Badger Logo" src="/static/logo.png?v=0.4.0" width="220" />
     <h3 align="center">Badger</h3>
-    <p align="center">A Microservice For LGTM Stack Testing</p>
+    <p align="center">A Fast, Secure MCP Gateway & Registry for MCP-compatible LLMs</p>
     <p align="center">
-        <a href="https://github.com/Uptimedog/Badger/actions/workflows/api.yml">
-            <img src="https://github.com/Uptimedog/Badger/actions/workflows/api.yml/badge.svg">
+        <a href="https://github.com/Clivern/Badger/actions/workflows/api.yml">
+            <img src="https://github.com/Clivern/Badger/actions/workflows/api.yml/badge.svg">
         </a>
-        <a href="https://github.com/Uptimedog/Badger/releases">
+        <a href="https://github.com/Clivern/Badger/releases">
             <img src="https://img.shields.io/badge/Version-v0.4.0-red.svg">
         </a>
-        <a href="https://github.com/Uptimedog/Badger/blob/main/LICENSE">
+        <a href="https://github.com/Clivern/Badger/blob/main/LICENSE">
             <img src="https://img.shields.io/badge/LICENSE-MIT-grey.svg">
         </a>
     </p>
@@ -21,21 +21,21 @@
 To install Badger Server, Use the following script:
 
 ```zsh
-$ bash < <(curl -s https://raw.githubusercontent.com/Uptimedog/Badger/main/deployment/ubuntu/install.sh)
+$ bash < <(curl -s https://raw.githubusercontent.com/Clivern/Badger/main/deployment/ubuntu/install.sh)
 
-$ bash < <(curl -s https://raw.githubusercontent.com/Uptimedog/Badger/main/deployment/ubuntu/upgrade.sh)
+$ bash < <(curl -s https://raw.githubusercontent.com/Clivern/Badger/main/deployment/ubuntu/upgrade.sh)
 ```
 
 ### Versioning
 
 For transparency into our release cycle and in striving to maintain backward compatibility, Badger is maintained under the [Semantic Versioning guidelines](https://semver.org/) and release process is predictable and business-friendly.
 
-See the [Releases section of our GitHub project](https://github.com/Uptimedog/Badger/releases) for changelogs for each release version of Badger. It contains summaries of the most noteworthy changes made in each release. Also see the [Milestones section](https://github.com/Uptimedog/Badger/milestones) for the future roadmap.
+See the [Releases section of our GitHub project](https://github.com/Clivern/Badger/releases) for changelogs for each release version of Badger. It contains summaries of the most noteworthy changes made in each release. Also see the [Milestones section](https://github.com/Clivern/Badger/milestones) for the future roadmap.
 
 
 ### Bug tracker
 
-If you have any suggestions, bug reports, or annoyances please report them to our issue tracker at https://github.com/Uptimedog/Badger/issues
+If you have any suggestions, bug reports, or annoyances please report them to our issue tracker at https://github.com/Clivern/Badger/issues
 
 
 ### Security Issues

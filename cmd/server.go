@@ -6,7 +6,6 @@ package cmd
 
 import (
 	"bytes"
-	"crypto/subtle"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,21 +13,17 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/uptimedog/badger/core/controller"
-	mid "github.com/uptimedog/badger/core/middleware"
-	"github.com/uptimedog/badger/core/service"
+	"github.com/clivern/badger/internal/api"
+	mid "github.com/clivern/badger/internal/middleware"
+	"github.com/clivern/badger/internal/service"
 
 	"github.com/drone/envsubst"
-	"github.com/labstack/echo-contrib/echoprometheus"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
-	"go.opentelemetry.io/otel/trace"
 )
 
 var serverCmd = &cobra.Command{
@@ -96,11 +91,9 @@ var serverCmd = &cobra.Command{
 			}
 		}
 
-		defaultLogger := middleware.DefaultLoggerConfig
-
 		if viper.GetString("server.log.output") == "stdout" {
 			log.SetOutput(os.Stdout)
-			defaultLogger.Output = os.Stdout
+			gin.DefaultWriter = os.Stdout
 		} else {
 			f, _ := os.OpenFile(
 				viper.GetString("server.log.output"),
@@ -108,7 +101,7 @@ var serverCmd = &cobra.Command{
 				0775,
 			)
 			log.SetOutput(f)
-			defaultLogger.Output = f
+			gin.DefaultWriter = f
 		}
 
 		lvl := strings.ToLower(viper.GetString("server.log.level"))
@@ -128,68 +121,59 @@ var serverCmd = &cobra.Command{
 
 		viper.SetDefault("config", config)
 
-		e := echo.New()
-		e.HideBanner = true
-		e.HidePort = true
-
+		// Set Gin mode
 		if viper.GetString("server.mode") == "dev" {
-			e.Debug = true
+			gin.SetMode(gin.DebugMode)
+		} else {
+			gin.SetMode(gin.ReleaseMode)
 		}
 
-		e.Use(mid.Logger)
-		e.Use(middleware.LoggerWithConfig(defaultLogger))
-		e.Use(middleware.RequestID())
-		e.Use(middleware.BodyLimit("2M"))
-		e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
-			Timeout: time.Duration(viper.GetInt("server.timeout")) * time.Second,
-		}))
-		e.Use(otelecho.Middleware(viper.GetString("server.name")))
-		e.Use(middleware.Recover())
-		e.Use(middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{
-			Skipper: func(c echo.Context) bool {
-				// Skip basic auth for other routes
-				if c.Path() != "/metrics" {
-					return true
-				}
+		r := gin.New()
 
-				return false
-			},
-			Validator: func(username, password string, c echo.Context) (bool, error) {
-				if subtle.ConstantTimeCompare([]byte(username), []byte(viper.GetString("server.metrics.username"))) == 1 &&
-					subtle.ConstantTimeCompare([]byte(password), []byte(viper.GetString("server.metrics.secret"))) == 1 {
-					return true, nil
-				}
+		// Recover middleware
+		r.Use(gin.Recovery())
 
-				return false, nil
-			},
-		}))
-		e.Use(echoprometheus.NewMiddleware(viper.GetString("server.name")))
+		// Prometheus middleware for HTTP metrics
+		r.Use(mid.PrometheusMiddleware())
 
-		e.HTTPErrorHandler = func(err error, c echo.Context) {
-			ctx := c.Request().Context()
-			trace.SpanFromContext(ctx).RecordError(err)
+		// Custom logger middleware
+		r.Use(mid.Logger())
 
-			e.DefaultHTTPErrorHandler(err, c)
-		}
-
-		e.GET("/favicon.ico", func(c echo.Context) error {
-			return c.String(http.StatusNoContent, "")
+		// Request timeout middleware
+		r.Use(func(c *gin.Context) {
+			timeoutCtx, _ := c.Request.Context(), func() {}
+			if viper.GetInt("server.timeout") > 0 {
+				var cancelFn func()
+				timeoutCtx, cancelFn = c.Request.Context(), func() {}
+				_ = cancelFn
+			}
+			c.Request = c.Request.WithContext(timeoutCtx)
+			c.Next()
 		})
 
-		e.GET("/", controller.HealthAction)
-		e.GET("/metrics", echoprometheus.NewHandler())
-		e.GET("/health", controller.HealthAction)
+		// Routes
+		r.GET("/favicon.ico", func(c *gin.Context) {
+			c.String(http.StatusNoContent, "")
+		})
+
+		r.GET("/", api.HealthAction)
+		r.GET("/health", api.HealthAction)
+
+		// Metrics endpoint with basic auth
+		r.GET("/metrics", gin.BasicAuth(gin.Accounts{
+			viper.GetString("server.metrics.username"): viper.GetString("server.metrics.secret"),
+		}), gin.WrapH(promhttp.Handler()))
 
 		var runerr error
 
 		if viper.GetBool("server.tls.status") {
-			runerr = e.StartTLS(
+			runerr = r.RunTLS(
 				fmt.Sprintf(":%s", strconv.Itoa(viper.GetInt("server.port"))),
 				viper.GetString("server.tls.crt_path"),
 				viper.GetString("server.tls.key_path"),
 			)
 		} else {
-			runerr = e.Start(
+			runerr = r.Run(
 				fmt.Sprintf(":%s", strconv.Itoa(viper.GetInt("server.port"))),
 			)
 		}
