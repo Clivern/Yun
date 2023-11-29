@@ -1,0 +1,37 @@
+// Copyright 2025 Clivern. All rights reserved.
+// Use of this source code is governed by the MIT
+// license that can be found in the LICENSE file.
+
+package api
+
+import (
+	"net/http"
+
+	"github.com/clivern/yun/db"
+	"github.com/clivern/yun/service"
+
+	"github.com/rs/zerolog/log"
+)
+
+// ReadyAction handles readiness check requests
+// This endpoint verifies that the application is ready to serve traffic
+// by checking database connectivity
+func ReadyAction(w http.ResponseWriter, r *http.Request) {
+	log.Debug().Msg("Readiness check endpoint called")
+
+	// Try to ping the database
+	database := db.GetDB()
+	if err := database.Ping(); err != nil {
+		log.Error().Err(err).Msg("Database ping failed during readiness check")
+
+		service.WriteJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
+			"status": "not_ok",
+		})
+		return
+	}
+
+	log.Debug().Msg("Readiness check passed")
+	service.WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"status": "ok",
+	})
+}

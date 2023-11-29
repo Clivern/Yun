@@ -1,0 +1,90 @@
+// Copyright 2025 Clivern. All rights reserved.
+// Use of this source code is governed by the MIT
+// license that can be found in the LICENSE file.
+
+package module
+
+import (
+	"errors"
+	"time"
+
+	"github.com/clivern/yun/db"
+	"github.com/clivern/yun/service"
+	"github.com/google/uuid"
+)
+
+type Setup struct {
+	OptionRepository *db.OptionRepository
+	UserRepository   *db.UserRepository
+}
+
+type SetupOptions struct {
+	GatewayURL    string
+	GatewayEmail  string
+	GatewayName   string
+	AdminEmail    string
+	AdminPassword string
+}
+
+func NewSetup(optionRepository *db.OptionRepository, userRepository *db.UserRepository) *Setup {
+	return &Setup{OptionRepository: optionRepository, UserRepository: userRepository}
+}
+
+func (s *Setup) IsInstalled() bool {
+	option, err := s.OptionRepository.Get("is_installed")
+	if err != nil {
+		return false
+	}
+	return option != nil
+}
+
+func (s *Setup) Install(options *SetupOptions) error {
+	// Check if the database is already installed
+	if s.IsInstalled() {
+		return errors.New("Gateway is already installed")
+	}
+
+	hashedPassword, err := service.HashPassword(options.AdminPassword)
+	if err != nil {
+		return err
+	}
+	// Create a new user
+	user := &db.User{
+		Email:       options.AdminEmail,
+		Password:    hashedPassword,
+		Role:        db.UserRoleAdmin,
+		APIKey:      uuid.New().String(),
+		IsActive:    true,
+		LastLoginAt: time.Now(),
+	}
+	err = s.UserRepository.Create(user)
+	if err != nil {
+		return err
+	}
+
+	// Set the installed option
+	err = s.OptionRepository.Create("is_installed", "1")
+	if err != nil {
+		return err
+	}
+
+	// Set the gateway URL option
+	err = s.OptionRepository.Create("gateway_url", options.GatewayURL)
+	if err != nil {
+		return err
+	}
+
+	// Set the gateway email option
+	err = s.OptionRepository.Create("gateway_email", options.GatewayEmail)
+	if err != nil {
+		return err
+	}
+
+	// Set the gateway name option
+	err = s.OptionRepository.Create("gateway_name", options.GatewayName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -5,7 +5,7 @@ pkgs          = ./...
 
 help: Makefile
 	@echo
-	@echo " Choose a command run in Badger:"
+	@echo " Choose a command run in Yun:"
 	@echo
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
@@ -83,9 +83,9 @@ verify:
 	$(go) mod verify
 
 
-## format: Format the code.
-.PHONY: format
-format:
+## fmt: Format the code.
+.PHONY: fmt
+fmt:
 	@echo ">> ============= Formatting Code ============= <<"
 	$(go) fmt $(pkgs)
 
@@ -95,6 +95,13 @@ format:
 vet:
 	@echo ">> ============= Vetting Code ============= <<"
 	$(go) vet $(pkgs)
+
+
+## web: Build the web assets.
+.PHONY: web
+web:
+	@echo ">> ============= Building Web Assets ============= <<"
+	cd web && npm run build
 
 
 ## coverage: Create HTML coverage report
@@ -109,7 +116,7 @@ coverage:
 .PHONY: run
 run:
 	@echo ">> ============= Run API Server ============= <<"
-	$(go) run badger.go server -c config.dist.yml
+	$(go) run yun.go server -c config.dist.yml
 
 
 ## ci: Run all CI tests.

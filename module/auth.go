@@ -1,0 +1,42 @@
+// Copyright 2025 Clivern. All rights reserved.
+// Use of this source code is governed by the MIT
+// license that can be found in the LICENSE file.
+
+package module
+
+import (
+	"errors"
+
+	"github.com/clivern/yun/db"
+	"github.com/clivern/yun/service"
+)
+
+// Auth is a module that handles authentication.
+type Auth struct {
+	UserRepository *db.UserRepository
+}
+
+// NewAuth creates a new auth.
+func NewAuth(repo *db.UserRepository) *Auth {
+	return &Auth{UserRepository: repo}
+}
+
+// Login authenticates a user.
+func (a *Auth) Login(email, password string) (*db.User, error) {
+	user, err := a.UserRepository.GetByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("Email not found")
+	}
+
+	if !service.ComparePassword(user.Password, password) {
+		return nil, errors.New("Invalid password")
+	}
+
+	a.UserRepository.UpdateLastLogin(user.ID)
+
+	return user, nil
+}
