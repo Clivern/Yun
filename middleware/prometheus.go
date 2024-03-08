@@ -81,7 +81,7 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		start := time.Now()
+		start := time.Now().UTC()
 		path := r.URL.Path
 
 		// Record request size

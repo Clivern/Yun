@@ -52,9 +52,10 @@ func NewServerRepository(db *sql.DB) *ServerRepository {
 //	err := repo.Create(server)
 func (r *ServerRepository) Create(server *Server) error {
 	result, err := r.db.Exec(
-		`INSERT INTO servers (name, slug, description, is_public, allowed_user_ids,
-		enable_tools, enable_resources, enable_prompts, tags, created_by)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO servers (
+			name, slug, description, is_public, allowed_user_ids,
+			enable_tools, enable_resources, enable_prompts, tags, created_by
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		server.Name,
 		server.Slug,
 		server.Description,
@@ -78,13 +79,27 @@ func (r *ServerRepository) Create(server *Server) error {
 func (r *ServerRepository) GetByID(id int64) (*Server, error) {
 	server := &Server{}
 	err := r.db.QueryRow(
-		`SELECT id, name, slug, description, is_public, allowed_user_ids, enable_tools,
-		enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers WHERE id = ?`,
+		`SELECT
+			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
+		FROM servers
+		WHERE id = ?`,
 		id,
-	).Scan(&server.ID, &server.Name, &server.Slug, &server.Description, &server.IsPublic,
-		&server.AllowedUserIDs, &server.EnableTools, &server.EnableResources, &server.EnablePrompts,
-		&server.Tags, &server.CreatedBy, &server.CreatedAt, &server.UpdatedAt)
+	).Scan(
+		&server.ID,
+		&server.Name,
+		&server.Slug,
+		&server.Description,
+		&server.IsPublic,
+		&server.AllowedUserIDs,
+		&server.EnableTools,
+		&server.EnableResources,
+		&server.EnablePrompts,
+		&server.Tags,
+		&server.CreatedBy,
+		&server.CreatedAt,
+		&server.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -100,13 +115,27 @@ func (r *ServerRepository) GetByID(id int64) (*Server, error) {
 func (r *ServerRepository) GetBySlug(slug string) (*Server, error) {
 	server := &Server{}
 	err := r.db.QueryRow(
-		`SELECT id, name, slug, description, is_public, allowed_user_ids, enable_tools,
-		enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers WHERE slug = ?`,
+		`SELECT
+			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
+		FROM servers
+		WHERE slug = ?`,
 		slug,
-	).Scan(&server.ID, &server.Name, &server.Slug, &server.Description, &server.IsPublic,
-		&server.AllowedUserIDs, &server.EnableTools, &server.EnableResources, &server.EnablePrompts,
-		&server.Tags, &server.CreatedBy, &server.CreatedAt, &server.UpdatedAt)
+	).Scan(
+		&server.ID,
+		&server.Name,
+		&server.Slug,
+		&server.Description,
+		&server.IsPublic,
+		&server.AllowedUserIDs,
+		&server.EnableTools,
+		&server.EnableResources,
+		&server.EnablePrompts,
+		&server.Tags,
+		&server.CreatedBy,
+		&server.CreatedAt,
+		&server.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -121,9 +150,11 @@ func (r *ServerRepository) GetBySlug(slug string) (*Server, error) {
 // Update updates a server's information.
 func (r *ServerRepository) Update(server *Server) error {
 	_, err := r.db.Exec(
-		`UPDATE servers SET name = ?, slug = ?, description = ?, is_public = ?,
-		allowed_user_ids = ?, enable_tools = ?, enable_resources = ?, enable_prompts = ?,
-		tags = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE servers SET
+			name = ?, slug = ?, description = ?, is_public = ?,
+			allowed_user_ids = ?, enable_tools = ?, enable_resources = ?, enable_prompts = ?,
+			tags = ?, updated_at = ?
+		WHERE id = ?`,
 		server.Name,
 		server.Slug,
 		server.Description,
@@ -133,7 +164,7 @@ func (r *ServerRepository) Update(server *Server) error {
 		server.EnableResources,
 		server.EnablePrompts,
 		server.Tags,
-		time.Now(),
+		time.Now().UTC(),
 		server.ID,
 	)
 	return err
@@ -148,9 +179,12 @@ func (r *ServerRepository) Delete(id int64) error {
 // List retrieves all servers with pagination.
 func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, slug, description, is_public, allowed_user_ids, enable_tools,
-		enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
+		FROM servers
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -162,10 +196,21 @@ func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
 	var servers []*Server
 	for rows.Next() {
 		server := &Server{}
-		if err := rows.Scan(&server.ID, &server.Name, &server.Slug, &server.Description,
-			&server.IsPublic, &server.AllowedUserIDs, &server.EnableTools, &server.EnableResources,
-			&server.EnablePrompts, &server.Tags, &server.CreatedBy, &server.CreatedAt,
-			&server.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&server.ID,
+			&server.Name,
+			&server.Slug,
+			&server.Description,
+			&server.IsPublic,
+			&server.AllowedUserIDs,
+			&server.EnableTools,
+			&server.EnableResources,
+			&server.EnablePrompts,
+			&server.Tags,
+			&server.CreatedBy,
+			&server.CreatedAt,
+			&server.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		servers = append(servers, server)
@@ -177,9 +222,13 @@ func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
 // ListByCreator retrieves all servers created by a specific user.
 func (r *ServerRepository) ListByCreator(userID int64, limit, offset int) ([]*Server, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, slug, description, is_public, allowed_user_ids, enable_tools,
-		enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers WHERE created_by = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
+		FROM servers
+		WHERE created_by = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		userID,
 		limit,
 		offset,
@@ -192,10 +241,21 @@ func (r *ServerRepository) ListByCreator(userID int64, limit, offset int) ([]*Se
 	var servers []*Server
 	for rows.Next() {
 		server := &Server{}
-		if err := rows.Scan(&server.ID, &server.Name, &server.Slug, &server.Description,
-			&server.IsPublic, &server.AllowedUserIDs, &server.EnableTools, &server.EnableResources,
-			&server.EnablePrompts, &server.Tags, &server.CreatedBy, &server.CreatedAt,
-			&server.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&server.ID,
+			&server.Name,
+			&server.Slug,
+			&server.Description,
+			&server.IsPublic,
+			&server.AllowedUserIDs,
+			&server.EnableTools,
+			&server.EnableResources,
+			&server.EnablePrompts,
+			&server.Tags,
+			&server.CreatedBy,
+			&server.CreatedAt,
+			&server.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		servers = append(servers, server)
@@ -246,10 +306,19 @@ func (r *ServerMetaRepository) Create(serverID int64, key, value string) error {
 func (r *ServerMetaRepository) Get(serverID int64, key string) (*ServerMeta, error) {
 	meta := &ServerMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, server_id, created_at, updated_at FROM servers_meta WHERE server_id = ? AND key = ?",
+		`SELECT id, key, value, server_id, created_at, updated_at
+		FROM servers_meta
+		WHERE server_id = ? AND key = ?`,
 		serverID,
 		key,
-	).Scan(&meta.ID, &meta.Key, &meta.Value, &meta.ServerID, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.ID,
+		&meta.Key,
+		&meta.Value,
+		&meta.ServerID,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -264,9 +333,11 @@ func (r *ServerMetaRepository) Get(serverID int64, key string) (*ServerMeta, err
 // Update updates metadata for a server.
 func (r *ServerMetaRepository) Update(serverID int64, key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE servers_meta SET value = ?, updated_at = ? WHERE server_id = ? AND key = ?",
+		`UPDATE servers_meta SET
+			value = ?, updated_at = ?
+		WHERE server_id = ? AND key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		serverID,
 		key,
 	)
@@ -286,7 +357,10 @@ func (r *ServerMetaRepository) Delete(serverID int64, key string) error {
 // ListByServer retrieves all metadata for a server.
 func (r *ServerMetaRepository) ListByServer(serverID int64) ([]*ServerMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, server_id, created_at, updated_at FROM servers_meta WHERE server_id = ? ORDER BY key",
+		`SELECT id, key, value, server_id, created_at, updated_at
+		FROM servers_meta
+		WHERE server_id = ?
+		ORDER BY key`,
 		serverID,
 	)
 	if err != nil {
@@ -297,7 +371,14 @@ func (r *ServerMetaRepository) ListByServer(serverID int64) ([]*ServerMeta, erro
 	var metadata []*ServerMeta
 	for rows.Next() {
 		meta := &ServerMeta{}
-		if err := rows.Scan(&meta.ID, &meta.Key, &meta.Value, &meta.ServerID, &meta.CreatedAt, &meta.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&meta.ID,
+			&meta.Key,
+			&meta.Value,
+			&meta.ServerID,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metadata = append(metadata, meta)
@@ -392,7 +473,9 @@ func (r *ServerToolRepository) GetToolsByServer(serverID int64) ([]int64, error)
 	var toolIDs []int64
 	for rows.Next() {
 		var toolID int64
-		if err := rows.Scan(&toolID); err != nil {
+		if err := rows.Scan(
+			&toolID,
+		); err != nil {
 			return nil, err
 		}
 		toolIDs = append(toolIDs, toolID)
@@ -422,7 +505,9 @@ func (r *ServerToolRepository) GetServersByTool(toolID int64) ([]int64, error) {
 	var serverIDs []int64
 	for rows.Next() {
 		var serverID int64
-		if err := rows.Scan(&serverID); err != nil {
+		if err := rows.Scan(
+			&serverID,
+		); err != nil {
 			return nil, err
 		}
 		serverIDs = append(serverIDs, serverID)
@@ -519,7 +604,9 @@ func (r *ServerResourceRepository) GetResourcesByServer(serverID int64) ([]int64
 	var resourceIDs []int64
 	for rows.Next() {
 		var resourceID int64
-		if err := rows.Scan(&resourceID); err != nil {
+		if err := rows.Scan(
+			&resourceID,
+		); err != nil {
 			return nil, err
 		}
 		resourceIDs = append(resourceIDs, resourceID)
@@ -549,7 +636,9 @@ func (r *ServerResourceRepository) GetServersByResource(resourceID int64) ([]int
 	var serverIDs []int64
 	for rows.Next() {
 		var serverID int64
-		if err := rows.Scan(&serverID); err != nil {
+		if err := rows.Scan(
+			&serverID,
+		); err != nil {
 			return nil, err
 		}
 		serverIDs = append(serverIDs, serverID)
@@ -646,7 +735,9 @@ func (r *ServerPromptRepository) GetPromptsByServer(serverID int64) ([]int64, er
 	var promptIDs []int64
 	for rows.Next() {
 		var promptID int64
-		if err := rows.Scan(&promptID); err != nil {
+		if err := rows.Scan(
+			&promptID,
+		); err != nil {
 			return nil, err
 		}
 		promptIDs = append(promptIDs, promptID)
@@ -676,7 +767,9 @@ func (r *ServerPromptRepository) GetServersByPrompt(promptID int64) ([]int64, er
 	var serverIDs []int64
 	for rows.Next() {
 		var serverID int64
-		if err := rows.Scan(&serverID); err != nil {
+		if err := rows.Scan(
+			&serverID,
+		); err != nil {
 			return nil, err
 		}
 		serverIDs = append(serverIDs, serverID)

@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package module provides business logic modules for the Yun application.
 package module
 
 import (

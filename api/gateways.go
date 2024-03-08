@@ -2,4 +2,5 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package api provides HTTP API handlers for the Yun application.
 package api

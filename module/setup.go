@@ -13,11 +13,13 @@ import (
 	"github.com/google/uuid"
 )
 
+// Setup handles the initial installation and configuration of the gateway.
 type Setup struct {
 	OptionRepository *db.OptionRepository
 	UserRepository   *db.UserRepository
 }
 
+// SetupOptions contains the configuration options for gateway setup.
 type SetupOptions struct {
 	GatewayURL    string
 	GatewayEmail  string
@@ -26,10 +28,12 @@ type SetupOptions struct {
 	AdminPassword string
 }
 
+// NewSetup creates a new Setup instance with the provided repositories.
 func NewSetup(optionRepository *db.OptionRepository, userRepository *db.UserRepository) *Setup {
 	return &Setup{OptionRepository: optionRepository, UserRepository: userRepository}
 }
 
+// IsInstalled checks whether the gateway has been installed.
 func (s *Setup) IsInstalled() bool {
 	option, err := s.OptionRepository.Get("is_installed")
 	if err != nil {
@@ -38,6 +42,7 @@ func (s *Setup) IsInstalled() bool {
 	return option != nil
 }
 
+// Install performs the initial gateway installation with the provided options.
 func (s *Setup) Install(options *SetupOptions) error {
 	// Check if the database is already installed
 	if s.IsInstalled() {
@@ -55,7 +60,7 @@ func (s *Setup) Install(options *SetupOptions) error {
 		Role:        db.UserRoleAdmin,
 		APIKey:      uuid.New().String(),
 		IsActive:    true,
-		LastLoginAt: time.Now(),
+		LastLoginAt: time.Now().UTC(),
 	}
 	err = s.UserRepository.Create(user)
 	if err != nil {

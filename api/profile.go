@@ -42,7 +42,7 @@ func GetProfileAction(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateProfileAction handles user profile update requests
-func UpdateProfileAction(w http.ResponseWriter, r *http.Request) {
+func UpdateProfileAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Update profile endpoint called")
 
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{})

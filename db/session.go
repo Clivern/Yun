@@ -64,7 +64,8 @@ func (r *SessionRepository) GetByToken(token string) (*Session, error) {
 	session := &Session{}
 	err := r.db.QueryRow(
 		`SELECT id, token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
-		FROM sessions WHERE token = ?`,
+		FROM sessions
+		WHERE token = ?`,
 		token,
 	).Scan(
 		&session.ID,
@@ -92,7 +93,8 @@ func (r *SessionRepository) GetByID(id int64) (*Session, error) {
 	session := &Session{}
 	err := r.db.QueryRow(
 		`SELECT id, token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
-		FROM sessions WHERE id = ?`,
+		FROM sessions
+		WHERE id = ?`,
 		id,
 	).Scan(
 		&session.ID,
@@ -119,7 +121,9 @@ func (r *SessionRepository) GetByID(id int64) (*Session, error) {
 func (r *SessionRepository) GetByUserID(userID int64) ([]*Session, error) {
 	rows, err := r.db.Query(
 		`SELECT id, token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
-		FROM sessions WHERE user_id = ? ORDER BY created_at DESC`,
+		FROM sessions
+		WHERE user_id = ?
+		ORDER BY created_at DESC`,
 		userID,
 	)
 	if err != nil {
@@ -168,7 +172,7 @@ func (r *SessionRepository) DeleteByUserID(userID int64) error {
 
 // DeleteExpired removes all expired sessions.
 func (r *SessionRepository) DeleteExpired() (int64, error) {
-	result, err := r.db.Exec("DELETE FROM sessions WHERE expires_at < ?", time.Now())
+	result, err := r.db.Exec("DELETE FROM sessions WHERE expires_at < ?", time.Now().UTC())
 	if err != nil {
 		return 0, err
 	}
@@ -187,15 +191,17 @@ func (r *SessionRepository) IsValid(token string) (bool, error) {
 		return false, nil
 	}
 
-	return session.ExpiresAt.After(time.Now()), nil
+	return session.ExpiresAt.After(time.Now().UTC()), nil
 }
 
 // UpdateExpiration updates the expiration time of a session.
 func (r *SessionRepository) UpdateExpiration(id int64, expiresAt time.Time) error {
 	_, err := r.db.Exec(
-		`UPDATE sessions SET expires_at = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE sessions SET
+			expires_at = ?, updated_at = ?
+		WHERE id = ?`,
 		expiresAt,
-		time.Now(),
+		time.Now().UTC(),
 		id,
 	)
 	return err
@@ -204,7 +210,7 @@ func (r *SessionRepository) UpdateExpiration(id int64, expiresAt time.Time) erro
 // Count returns the total number of active (non-expired) sessions.
 func (r *SessionRepository) Count() (int64, error) {
 	var count int64
-	err := r.db.QueryRow("SELECT COUNT(*) FROM sessions WHERE expires_at > ?", time.Now()).Scan(&count)
+	err := r.db.QueryRow("SELECT COUNT(*) FROM sessions WHERE expires_at > ?", time.Now().UTC()).Scan(&count)
 	return count, err
 }
 
@@ -212,9 +218,9 @@ func (r *SessionRepository) Count() (int64, error) {
 func (r *SessionRepository) CountByUserID(userID int64) (int64, error) {
 	var count int64
 	err := r.db.QueryRow(
-		"SELECT COUNT(*) FROM sessions WHERE user_id = ? AND expires_at > ?",
+		`SELECT COUNT(*) FROM sessions WHERE user_id = ? AND expires_at > ?`,
 		userID,
-		time.Now(),
+		time.Now().UTC(),
 	).Scan(&count)
 	return count, err
 }

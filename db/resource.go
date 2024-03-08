@@ -39,9 +39,10 @@ func NewResourceRepository(db *sql.DB) *ResourceRepository {
 // Create inserts a new resource into the database.
 func (r *ResourceRepository) Create(resource *Resource) error {
 	result, err := r.db.Exec(
-		`INSERT INTO resources (name, original_name, uri, mcp_id, description, mime_type,
-		is_enabled, tags, access_count, last_accessed_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO resources (
+			name, original_name, uri, mcp_id, description, mime_type,
+			is_enabled, tags, access_count, last_accessed_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		resource.Name,
 		resource.OriginalName,
 		resource.URI,
@@ -65,13 +66,27 @@ func (r *ResourceRepository) Create(resource *Resource) error {
 func (r *ResourceRepository) GetByID(id int64) (*Resource, error) {
 	resource := &Resource{}
 	err := r.db.QueryRow(
-		`SELECT id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
-		tags, access_count, last_accessed_at, created_at, updated_at
-		FROM resources WHERE id = ?`,
+		`SELECT
+			id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
+			tags, access_count, last_accessed_at, created_at, updated_at
+		FROM resources
+		WHERE id = ?`,
 		id,
-	).Scan(&resource.ID, &resource.Name, &resource.OriginalName, &resource.URI, &resource.MCPID,
-		&resource.Description, &resource.MimeType, &resource.IsEnabled, &resource.Tags,
-		&resource.AccessCount, &resource.LastAccessedAt, &resource.CreatedAt, &resource.UpdatedAt)
+	).Scan(
+		&resource.ID,
+		&resource.Name,
+		&resource.OriginalName,
+		&resource.URI,
+		&resource.MCPID,
+		&resource.Description,
+		&resource.MimeType,
+		&resource.IsEnabled,
+		&resource.Tags,
+		&resource.AccessCount,
+		&resource.LastAccessedAt,
+		&resource.CreatedAt,
+		&resource.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -87,14 +102,28 @@ func (r *ResourceRepository) GetByID(id int64) (*Resource, error) {
 func (r *ResourceRepository) GetByMCPAndURI(mcpID int64, uri string) (*Resource, error) {
 	resource := &Resource{}
 	err := r.db.QueryRow(
-		`SELECT id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
-		tags, access_count, last_accessed_at, created_at, updated_at
-		FROM resources WHERE mcp_id = ? AND uri = ?`,
+		`SELECT
+			id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
+			tags, access_count, last_accessed_at, created_at, updated_at
+		FROM resources
+		WHERE mcp_id = ? AND uri = ?`,
 		mcpID,
 		uri,
-	).Scan(&resource.ID, &resource.Name, &resource.OriginalName, &resource.URI, &resource.MCPID,
-		&resource.Description, &resource.MimeType, &resource.IsEnabled, &resource.Tags,
-		&resource.AccessCount, &resource.LastAccessedAt, &resource.CreatedAt, &resource.UpdatedAt)
+	).Scan(
+		&resource.ID,
+		&resource.Name,
+		&resource.OriginalName,
+		&resource.URI,
+		&resource.MCPID,
+		&resource.Description,
+		&resource.MimeType,
+		&resource.IsEnabled,
+		&resource.Tags,
+		&resource.AccessCount,
+		&resource.LastAccessedAt,
+		&resource.CreatedAt,
+		&resource.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -109,9 +138,11 @@ func (r *ResourceRepository) GetByMCPAndURI(mcpID int64, uri string) (*Resource,
 // Update updates a resource's information.
 func (r *ResourceRepository) Update(resource *Resource) error {
 	_, err := r.db.Exec(
-		`UPDATE resources SET name = ?, original_name = ?, uri = ?, mcp_id = ?,
-		description = ?, mime_type = ?, is_enabled = ?, tags = ?, access_count = ?,
-		last_accessed_at = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE resources SET
+			name = ?, original_name = ?, uri = ?, mcp_id = ?,
+			description = ?, mime_type = ?, is_enabled = ?, tags = ?, access_count = ?,
+			last_accessed_at = ?, updated_at = ?
+		WHERE id = ?`,
 		resource.Name,
 		resource.OriginalName,
 		resource.URI,
@@ -122,7 +153,7 @@ func (r *ResourceRepository) Update(resource *Resource) error {
 		resource.Tags,
 		resource.AccessCount,
 		resource.LastAccessedAt,
-		time.Now(),
+		time.Now().UTC(),
 		resource.ID,
 	)
 	return err
@@ -130,10 +161,11 @@ func (r *ResourceRepository) Update(resource *Resource) error {
 
 // UpdateAccessMetrics updates the access metrics for a resource.
 func (r *ResourceRepository) UpdateAccessMetrics(id int64) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	_, err := r.db.Exec(
-		`UPDATE resources SET access_count = access_count + 1, last_accessed_at = ?,
-		updated_at = ? WHERE id = ?`,
+		`UPDATE resources SET
+			access_count = access_count + 1, last_accessed_at = ?, updated_at = ?
+		WHERE id = ?`,
 		now,
 		now,
 		id,
@@ -150,9 +182,12 @@ func (r *ResourceRepository) Delete(id int64) error {
 // List retrieves all resources with pagination.
 func (r *ResourceRepository) List(limit, offset int) ([]*Resource, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
-		tags, access_count, last_accessed_at, created_at, updated_at
-		FROM resources ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
+			tags, access_count, last_accessed_at, created_at, updated_at
+		FROM resources
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -167,9 +202,13 @@ func (r *ResourceRepository) List(limit, offset int) ([]*Resource, error) {
 // ListByMCP retrieves all resources for a specific MCP connection.
 func (r *ResourceRepository) ListByMCP(mcpID int64, limit, offset int) ([]*Resource, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
-		tags, access_count, last_accessed_at, created_at, updated_at
-		FROM resources WHERE mcp_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, uri, mcp_id, description, mime_type, is_enabled,
+			tags, access_count, last_accessed_at, created_at, updated_at
+		FROM resources
+		WHERE mcp_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		mcpID,
 		limit,
 		offset,
@@ -193,10 +232,21 @@ func (r *ResourceRepository) scanResources(rows *sql.Rows) ([]*Resource, error) 
 	var resources []*Resource
 	for rows.Next() {
 		resource := &Resource{}
-		if err := rows.Scan(&resource.ID, &resource.Name, &resource.OriginalName, &resource.URI,
-			&resource.MCPID, &resource.Description, &resource.MimeType, &resource.IsEnabled,
-			&resource.Tags, &resource.AccessCount, &resource.LastAccessedAt,
-			&resource.CreatedAt, &resource.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&resource.ID,
+			&resource.Name,
+			&resource.OriginalName,
+			&resource.URI,
+			&resource.MCPID,
+			&resource.Description,
+			&resource.MimeType,
+			&resource.IsEnabled,
+			&resource.Tags,
+			&resource.AccessCount,
+			&resource.LastAccessedAt,
+			&resource.CreatedAt,
+			&resource.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		resources = append(resources, resource)
@@ -239,10 +289,19 @@ func (r *ResourceMetaRepository) Create(resourceID int64, key, value string) err
 func (r *ResourceMetaRepository) Get(resourceID int64, key string) (*ResourceMeta, error) {
 	meta := &ResourceMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, resource_id, created_at, updated_at FROM resources_meta WHERE resource_id = ? AND key = ?",
+		`SELECT id, key, value, resource_id, created_at, updated_at
+		FROM resources_meta
+		WHERE resource_id = ? AND key = ?`,
 		resourceID,
 		key,
-	).Scan(&meta.ID, &meta.Key, &meta.Value, &meta.ResourceID, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.ID,
+		&meta.Key,
+		&meta.Value,
+		&meta.ResourceID,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -257,9 +316,11 @@ func (r *ResourceMetaRepository) Get(resourceID int64, key string) (*ResourceMet
 // Update updates metadata for a resource.
 func (r *ResourceMetaRepository) Update(resourceID int64, key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE resources_meta SET value = ?, updated_at = ? WHERE resource_id = ? AND key = ?",
+		`UPDATE resources_meta SET
+			value = ?, updated_at = ?
+		WHERE resource_id = ? AND key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		resourceID,
 		key,
 	)
@@ -279,7 +340,10 @@ func (r *ResourceMetaRepository) Delete(resourceID int64, key string) error {
 // ListByResource retrieves all metadata for a resource.
 func (r *ResourceMetaRepository) ListByResource(resourceID int64) ([]*ResourceMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, resource_id, created_at, updated_at FROM resources_meta WHERE resource_id = ? ORDER BY key",
+		`SELECT id, key, value, resource_id, created_at, updated_at
+		FROM resources_meta
+		WHERE resource_id = ?
+		ORDER BY key`,
 		resourceID,
 	)
 	if err != nil {
@@ -290,7 +354,14 @@ func (r *ResourceMetaRepository) ListByResource(resourceID int64) ([]*ResourceMe
 	var metadata []*ResourceMeta
 	for rows.Next() {
 		meta := &ResourceMeta{}
-		if err := rows.Scan(&meta.ID, &meta.Key, &meta.Value, &meta.ResourceID, &meta.CreatedAt, &meta.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&meta.ID,
+			&meta.Key,
+			&meta.Value,
+			&meta.ResourceID,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metadata = append(metadata, meta)

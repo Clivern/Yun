@@ -53,7 +53,7 @@ func (s *SessionManager) CreateSession(userID int64, duration time.Duration, ipA
 	session := &db.Session{
 		Token:     token,
 		UserID:    userID,
-		ExpiresAt: time.Now().Add(duration),
+		ExpiresAt: time.Now().UTC().Add(duration),
 	}
 
 	if ipAddress != "" {
@@ -84,7 +84,7 @@ func (s *SessionManager) ValidateSession(token string) (*db.User, *db.Session, e
 	}
 
 	// Check if session is expired
-	if session.ExpiresAt.Before(time.Now()) {
+	if session.ExpiresAt.Before(time.Now().UTC()) {
 		// Clean up expired session
 		s.SessionRepo.Delete(session.ID)
 		return nil, nil, errors.New("session expired")
@@ -119,7 +119,7 @@ func (s *SessionManager) RefreshSession(token string, duration time.Duration) er
 		return errors.New("session not found")
 	}
 
-	newExpiration := time.Now().Add(duration)
+	newExpiration := time.Now().UTC().Add(duration)
 	return s.SessionRepo.UpdateExpiration(session.ID, newExpiration)
 }
 
@@ -142,7 +142,7 @@ func (s *SessionManager) GetUserSessions(userID int64) ([]*db.Session, error) {
 
 	// Filter out expired sessions
 	var activeSessions []*db.Session
-	now := time.Now()
+	now := time.Now().UTC()
 	for _, session := range sessions {
 		if session.ExpiresAt.After(now) {
 			activeSessions = append(activeSessions, session)

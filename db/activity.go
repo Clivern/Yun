@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package db provides database access layer and repository implementations.
 package db
 
 import (
@@ -53,9 +54,10 @@ func NewActivityRepository(db *sql.DB) *ActivityRepository {
 //	err := repo.Create(activity)
 func (r *ActivityRepository) Create(activity *Activity) error {
 	result, err := r.db.Exec(
-		`INSERT INTO activities (user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO activities (
+			user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		activity.UserID,
 		activity.UserEmail,
 		activity.Action,
@@ -81,13 +83,28 @@ func (r *ActivityRepository) Create(activity *Activity) error {
 func (r *ActivityRepository) GetByID(id int64) (*Activity, error) {
 	activity := &Activity{}
 	err := r.db.QueryRow(
-		`SELECT id, user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id, created_at
-		FROM activities WHERE id = ?`,
+		`SELECT
+			id, user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id, created_at
+		FROM activities
+		WHERE id = ?`,
 		id,
-	).Scan(&activity.ID, &activity.UserID, &activity.UserEmail, &activity.Action, &activity.EntityType,
-		&activity.EntityID, &activity.EntityName, &activity.Details, &activity.Status, &activity.ErrorMessage,
-		&activity.IPAddress, &activity.UserAgent, &activity.RequestID, &activity.CreatedAt)
+	).Scan(
+		&activity.ID,
+		&activity.UserID,
+		&activity.UserEmail,
+		&activity.Action,
+		&activity.EntityType,
+		&activity.EntityID,
+		&activity.EntityName,
+		&activity.Details,
+		&activity.Status,
+		&activity.ErrorMessage,
+		&activity.IPAddress,
+		&activity.UserAgent,
+		&activity.RequestID,
+		&activity.CreatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -102,9 +119,12 @@ func (r *ActivityRepository) GetByID(id int64) (*Activity, error) {
 // List retrieves all activity logs with pagination.
 func (r *ActivityRepository) List(limit, offset int) ([]*Activity, error) {
 	rows, err := r.db.Query(
-		`SELECT id, user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id, created_at
-		FROM activities ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id, created_at
+		FROM activities
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -119,9 +139,13 @@ func (r *ActivityRepository) List(limit, offset int) ([]*Activity, error) {
 // ListByUser retrieves all activity logs for a specific user.
 func (r *ActivityRepository) ListByUser(userID int64, limit, offset int) ([]*Activity, error) {
 	rows, err := r.db.Query(
-		`SELECT id, user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id, created_at
-		FROM activities WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id, created_at
+		FROM activities
+		WHERE user_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		userID,
 		limit,
 		offset,
@@ -137,9 +161,13 @@ func (r *ActivityRepository) ListByUser(userID int64, limit, offset int) ([]*Act
 // ListByAction retrieves all activity logs for a specific action.
 func (r *ActivityRepository) ListByAction(action string, limit, offset int) ([]*Activity, error) {
 	rows, err := r.db.Query(
-		`SELECT id, user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id, created_at
-		FROM activities WHERE action = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id, created_at
+		FROM activities
+		WHERE action = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		action,
 		limit,
 		offset,
@@ -155,9 +183,13 @@ func (r *ActivityRepository) ListByAction(action string, limit, offset int) ([]*
 // ListByEntity retrieves all activity logs for a specific entity.
 func (r *ActivityRepository) ListByEntity(entityType string, entityID int64, limit, offset int) ([]*Activity, error) {
 	rows, err := r.db.Query(
-		`SELECT id, user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id, created_at
-		FROM activities WHERE entity_type = ? AND entity_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id, created_at
+		FROM activities
+		WHERE entity_type = ? AND entity_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		entityType,
 		entityID,
 		limit,
@@ -174,9 +206,13 @@ func (r *ActivityRepository) ListByEntity(entityType string, entityID int64, lim
 // ListByDateRange retrieves activity logs within a date range.
 func (r *ActivityRepository) ListByDateRange(startDate, endDate time.Time, limit, offset int) ([]*Activity, error) {
 	rows, err := r.db.Query(
-		`SELECT id, user_id, user_email, action, entity_type, entity_id, entity_name,
-		details, status, error_message, ip_address, user_agent, request_id, created_at
-		FROM activities WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, user_id, user_email, action, entity_type, entity_id, entity_name,
+			details, status, error_message, ip_address, user_agent, request_id, created_at
+		FROM activities
+		WHERE created_at >= ? AND created_at <= ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		startDate,
 		endDate,
 		limit,
@@ -204,7 +240,7 @@ func (r *ActivityRepository) CountByUser(userID int64) (int64, error) {
 	return count, err
 }
 
-// Delete removes activity logs older than a specific date (for cleanup).
+// DeleteOlderThan removes activity logs older than a specific date (for cleanup).
 func (r *ActivityRepository) DeleteOlderThan(date time.Time) (int64, error) {
 	result, err := r.db.Exec("DELETE FROM activities WHERE created_at < ?", date)
 	if err != nil {
@@ -217,10 +253,22 @@ func (r *ActivityRepository) scanActivities(rows *sql.Rows) ([]*Activity, error)
 	var activities []*Activity
 	for rows.Next() {
 		activity := &Activity{}
-		if err := rows.Scan(&activity.ID, &activity.UserID, &activity.UserEmail, &activity.Action,
-			&activity.EntityType, &activity.EntityID, &activity.EntityName, &activity.Details,
-			&activity.Status, &activity.ErrorMessage, &activity.IPAddress, &activity.UserAgent,
-			&activity.RequestID, &activity.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&activity.ID,
+			&activity.UserID,
+			&activity.UserEmail,
+			&activity.Action,
+			&activity.EntityType,
+			&activity.EntityID,
+			&activity.EntityName,
+			&activity.Details,
+			&activity.Status,
+			&activity.ErrorMessage,
+			&activity.IPAddress,
+			&activity.UserAgent,
+			&activity.RequestID,
+			&activity.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		activities = append(activities, activity)
@@ -269,9 +317,10 @@ func NewToolMetricRepository(db *sql.DB) *ToolMetricRepository {
 //	err := repo.Create(metric)
 func (r *ToolMetricRepository) Create(metric *ToolMetric) error {
 	result, err := r.db.Exec(
-		`INSERT INTO tool_metrics (tool_id, user_id, request_id, arguments, success,
-		response_time_ms, error_message, server_id, client_ip, user_agent)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO tool_metrics (
+			tool_id, user_id, request_id, arguments, success,
+			response_time_ms, error_message, server_id, client_ip, user_agent
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		metric.ToolID,
 		metric.UserID,
 		metric.RequestID,
@@ -295,13 +344,26 @@ func (r *ToolMetricRepository) Create(metric *ToolMetric) error {
 func (r *ToolMetricRepository) GetByID(id int64) (*ToolMetric, error) {
 	metric := &ToolMetric{}
 	err := r.db.QueryRow(
-		`SELECT id, tool_id, user_id, request_id, arguments, success, response_time_ms,
-		error_message, server_id, client_ip, user_agent, created_at
-		FROM tool_metrics WHERE id = ?`,
+		`SELECT
+			id, tool_id, user_id, request_id, arguments, success, response_time_ms,
+			error_message, server_id, client_ip, user_agent, created_at
+		FROM tool_metrics
+		WHERE id = ?`,
 		id,
-	).Scan(&metric.ID, &metric.ToolID, &metric.UserID, &metric.RequestID, &metric.Arguments,
-		&metric.Success, &metric.ResponseTimeMs, &metric.ErrorMessage, &metric.ServerID,
-		&metric.ClientIP, &metric.UserAgent, &metric.CreatedAt)
+	).Scan(
+		&metric.ID,
+		&metric.ToolID,
+		&metric.UserID,
+		&metric.RequestID,
+		&metric.Arguments,
+		&metric.Success,
+		&metric.ResponseTimeMs,
+		&metric.ErrorMessage,
+		&metric.ServerID,
+		&metric.ClientIP,
+		&metric.UserAgent,
+		&metric.CreatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -316,9 +378,12 @@ func (r *ToolMetricRepository) GetByID(id int64) (*ToolMetric, error) {
 // List retrieves all tool metrics with pagination.
 func (r *ToolMetricRepository) List(limit, offset int) ([]*ToolMetric, error) {
 	rows, err := r.db.Query(
-		`SELECT id, tool_id, user_id, request_id, arguments, success, response_time_ms,
-		error_message, server_id, client_ip, user_agent, created_at
-		FROM tool_metrics ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, tool_id, user_id, request_id, arguments, success, response_time_ms,
+			error_message, server_id, client_ip, user_agent, created_at
+		FROM tool_metrics
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -333,9 +398,13 @@ func (r *ToolMetricRepository) List(limit, offset int) ([]*ToolMetric, error) {
 // ListByTool retrieves all metrics for a specific tool.
 func (r *ToolMetricRepository) ListByTool(toolID int64, limit, offset int) ([]*ToolMetric, error) {
 	rows, err := r.db.Query(
-		`SELECT id, tool_id, user_id, request_id, arguments, success, response_time_ms,
-		error_message, server_id, client_ip, user_agent, created_at
-		FROM tool_metrics WHERE tool_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, tool_id, user_id, request_id, arguments, success, response_time_ms,
+			error_message, server_id, client_ip, user_agent, created_at
+		FROM tool_metrics
+		WHERE tool_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		toolID,
 		limit,
 		offset,
@@ -351,9 +420,13 @@ func (r *ToolMetricRepository) ListByTool(toolID int64, limit, offset int) ([]*T
 // ListByUser retrieves all metrics for a specific user.
 func (r *ToolMetricRepository) ListByUser(userID int64, limit, offset int) ([]*ToolMetric, error) {
 	rows, err := r.db.Query(
-		`SELECT id, tool_id, user_id, request_id, arguments, success, response_time_ms,
-		error_message, server_id, client_ip, user_agent, created_at
-		FROM tool_metrics WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, tool_id, user_id, request_id, arguments, success, response_time_ms,
+			error_message, server_id, client_ip, user_agent, created_at
+		FROM tool_metrics
+		WHERE user_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		userID,
 		limit,
 		offset,
@@ -369,9 +442,13 @@ func (r *ToolMetricRepository) ListByUser(userID int64, limit, offset int) ([]*T
 // ListByDateRange retrieves metrics within a date range.
 func (r *ToolMetricRepository) ListByDateRange(startDate, endDate time.Time, limit, offset int) ([]*ToolMetric, error) {
 	rows, err := r.db.Query(
-		`SELECT id, tool_id, user_id, request_id, arguments, success, response_time_ms,
-		error_message, server_id, client_ip, user_agent, created_at
-		FROM tool_metrics WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, tool_id, user_id, request_id, arguments, success, response_time_ms,
+			error_message, server_id, client_ip, user_agent, created_at
+		FROM tool_metrics
+		WHERE created_at >= ? AND created_at <= ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		startDate,
 		endDate,
 		limit,
@@ -389,7 +466,9 @@ func (r *ToolMetricRepository) ListByDateRange(startDate, endDate time.Time, lim
 func (r *ToolMetricRepository) GetAverageResponseTime(toolID int64) (float64, error) {
 	var avg sql.NullFloat64
 	err := r.db.QueryRow(
-		"SELECT AVG(response_time_ms) FROM tool_metrics WHERE tool_id = ? AND response_time_ms IS NOT NULL",
+		`SELECT AVG(response_time_ms)
+		FROM tool_metrics
+		WHERE tool_id = ? AND response_time_ms IS NOT NULL`,
 		toolID,
 	).Scan(&avg)
 
@@ -438,7 +517,7 @@ func (r *ToolMetricRepository) Count() (int64, error) {
 	return count, err
 }
 
-// Delete removes metrics older than a specific date (for cleanup).
+// DeleteOlderThan removes metrics older than a specific date (for cleanup).
 func (r *ToolMetricRepository) DeleteOlderThan(date time.Time) (int64, error) {
 	result, err := r.db.Exec("DELETE FROM tool_metrics WHERE created_at < ?", date)
 	if err != nil {
@@ -451,9 +530,20 @@ func (r *ToolMetricRepository) scanMetrics(rows *sql.Rows) ([]*ToolMetric, error
 	var metrics []*ToolMetric
 	for rows.Next() {
 		metric := &ToolMetric{}
-		if err := rows.Scan(&metric.ID, &metric.ToolID, &metric.UserID, &metric.RequestID,
-			&metric.Arguments, &metric.Success, &metric.ResponseTimeMs, &metric.ErrorMessage,
-			&metric.ServerID, &metric.ClientIP, &metric.UserAgent, &metric.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&metric.ID,
+			&metric.ToolID,
+			&metric.UserID,
+			&metric.RequestID,
+			&metric.Arguments,
+			&metric.Success,
+			&metric.ResponseTimeMs,
+			&metric.ErrorMessage,
+			&metric.ServerID,
+			&metric.ClientIP,
+			&metric.UserAgent,
+			&metric.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metrics = append(metrics, metric)

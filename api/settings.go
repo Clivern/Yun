@@ -13,7 +13,7 @@ import (
 )
 
 // UpdateSettingsAction handles user settings update requests
-func UpdateSettingsAction(w http.ResponseWriter, r *http.Request) {
+func UpdateSettingsAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Update settings endpoint called")
 
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{})

@@ -4,7 +4,33 @@
 
 package migration
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+	"strings"
+)
+
+// detectDriver attempts to determine the database driver type
+func detectDriver(db *sql.DB) string {
+	// Try SQLite
+	_, err := db.Exec("SELECT sqlite_version()")
+	if err == nil {
+		return "sqlite"
+	}
+
+	// Try PostgreSQL
+	_, err = db.Exec("SELECT version()")
+	if err == nil {
+		var version string
+		db.QueryRow("SELECT version()").Scan(&version)
+		if strings.Contains(strings.ToLower(version), "postgresql") {
+			return "postgres"
+		}
+	}
+
+	// Unknown driver
+	return "unknown"
+}
 
 // GetAll returns all registered migrations
 func GetAll() []Migration {
@@ -140,13 +166,11 @@ func GetAll() []Migration {
 
 // createOptionsTable creates the options table
 func createOptionsTable(db *sql.DB) error {
-	// Try to determine if it's SQLite
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE options (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -155,19 +179,21 @@ func createOptionsTable(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE options (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL UNIQUE,
 			value TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX idx_key ON options(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -179,13 +205,11 @@ func dropOptionsTable(db *sql.DB) error {
 
 // createUsersTable creates the users table
 func createUsersTable(db *sql.DB) error {
-	// Try to determine if it's SQLite
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		// role is admin, user or readonly
 		query = `
 		CREATE TABLE users (
@@ -199,10 +223,10 @@ func createUsersTable(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE users (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			email VARCHAR(255) NOT NULL UNIQUE,
 			password VARCHAR(255) NOT NULL,
 			role VARCHAR(50) NOT NULL DEFAULT 'user',
@@ -210,14 +234,16 @@ func createUsersTable(db *sql.DB) error {
 			is_active BOOLEAN DEFAULT true,
 			last_login_at TIMESTAMP NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			INDEX idx_email (email),
-			INDEX idx_api_key (api_key),
-			INDEX idx_role (role)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX idx_email ON users(email);
+		CREATE INDEX idx_api_key ON users(api_key);
+		CREATE INDEX idx_role ON users(role)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -229,12 +255,11 @@ func dropUsersTable(db *sql.DB) error {
 
 // createMcpsTable creates the mcps table (Backend MCP Server Connections)
 func createMcpsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE mcps (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -258,10 +283,10 @@ func createMcpsTable(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE mcps (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			slug VARCHAR(255) NOT NULL UNIQUE,
 			url VARCHAR(767) NOT NULL,
@@ -280,14 +305,16 @@ func createMcpsTable(db *sql.DB) error {
 			description TEXT,
 			tags VARCHAR(500),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			INDEX idx_slug (slug),
-			INDEX idx_status (status),
-			INDEX idx_transport (transport)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX idx_slug ON mcps(slug);
+		CREATE INDEX idx_status ON mcps(status);
+		CREATE INDEX idx_transport ON mcps(transport)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -299,12 +326,11 @@ func dropMcpsTable(db *sql.DB) error {
 
 // createServersTable creates the servers table (Virtual Servers)
 func createServersTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE servers (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -322,10 +348,10 @@ func createServersTable(db *sql.DB) error {
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE servers (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			slug VARCHAR(255) NOT NULL UNIQUE,
 			description TEXT,
@@ -337,14 +363,16 @@ func createServersTable(db *sql.DB) error {
 			tags VARCHAR(500),
 			created_by INT,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
-			INDEX idx_slug (slug),
-			INDEX idx_created_by (created_by)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+		);
+		CREATE INDEX idx_slug ON servers(slug);
+		CREATE INDEX idx_created_by ON servers(created_by)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -356,12 +384,11 @@ func dropServersTable(db *sql.DB) error {
 
 // createToolsTable creates the tools table (Discovered from MCPs)
 func createToolsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE tools (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -384,10 +411,10 @@ func createToolsTable(db *sql.DB) error {
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
 			UNIQUE(mcp_id, original_name)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE tools (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			original_name VARCHAR(255) NOT NULL,
 			mcp_id INT NOT NULL,
@@ -403,17 +430,19 @@ func createToolsTable(db *sql.DB) error {
 			avg_response_time_ms INT DEFAULT 0,
 			error_count INT DEFAULT 0,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_tool_per_mcp (mcp_id, original_name),
-			INDEX idx_name (name),
-			INDEX idx_mcp_id (mcp_id),
-			INDEX idx_enabled (is_enabled),
-			INDEX idx_category (category)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (mcp_id, original_name)
+		);
+		CREATE INDEX idx_name ON tools(name);
+		CREATE INDEX idx_mcp_id ON tools(mcp_id);
+		CREATE INDEX idx_enabled ON tools(is_enabled);
+		CREATE INDEX idx_category ON tools(category)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -425,12 +454,11 @@ func dropToolsTable(db *sql.DB) error {
 
 // createResourcesTable creates the resources table (Discovered from MCPs)
 func createResourcesTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE resources (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -449,10 +477,10 @@ func createResourcesTable(db *sql.DB) error {
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
 			UNIQUE(mcp_id, uri)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE resources (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			original_name VARCHAR(255) NOT NULL,
 			uri VARCHAR(767) NOT NULL,
@@ -464,16 +492,18 @@ func createResourcesTable(db *sql.DB) error {
 			access_count INT DEFAULT 0,
 			last_accessed_at TIMESTAMP NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_resource_per_mcp (mcp_id, uri),
-			INDEX idx_name (name),
-			INDEX idx_mcp_id (mcp_id),
-			INDEX idx_uri (uri)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (mcp_id, uri)
+		);
+		CREATE INDEX idx_name ON resources(name);
+		CREATE INDEX idx_mcp_id ON resources(mcp_id);
+		CREATE INDEX idx_uri ON resources(uri)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -485,12 +515,11 @@ func dropResourcesTable(db *sql.DB) error {
 
 // createPromptsTable creates the prompts table (Discovered from MCPs)
 func createPromptsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE prompts (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -509,10 +538,10 @@ func createPromptsTable(db *sql.DB) error {
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
 			UNIQUE(mcp_id, original_name)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE prompts (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			original_name VARCHAR(255) NOT NULL,
 			mcp_id INT NOT NULL,
@@ -524,15 +553,17 @@ func createPromptsTable(db *sql.DB) error {
 			use_count INT DEFAULT 0,
 			last_used_at TIMESTAMP NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_prompt_per_mcp (mcp_id, original_name),
-			INDEX idx_name (name),
-			INDEX idx_mcp_id (mcp_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (mcp_id, original_name)
+		);
+		CREATE INDEX idx_name ON prompts(name);
+		CREATE INDEX idx_mcp_id ON prompts(mcp_id)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -544,12 +575,11 @@ func dropPromptsTable(db *sql.DB) error {
 
 // createGatewaysTable creates the gateways table
 func createGatewaysTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE gateways (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -562,10 +592,10 @@ func createGatewaysTable(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE gateways (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			slug VARCHAR(255) NOT NULL UNIQUE,
 			gateway_type VARCHAR(50) NOT NULL,
@@ -573,13 +603,15 @@ func createGatewaysTable(db *sql.DB) error {
 			is_enabled BOOLEAN DEFAULT true,
 			description TEXT,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			INDEX idx_slug (slug),
-			INDEX idx_type (gateway_type)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX idx_slug ON gateways(slug);
+		CREATE INDEX idx_type ON gateways(gateway_type)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -591,12 +623,11 @@ func dropGatewaysTable(db *sql.DB) error {
 
 // createServerToolsTable creates the server_tools table
 func createServerToolsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE server_tools (
 			server_id INTEGER NOT NULL,
@@ -606,7 +637,7 @@ func createServerToolsTable(db *sql.DB) error {
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
 			FOREIGN KEY (tool_id) REFERENCES tools(id) ON DELETE CASCADE
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE server_tools (
 			server_id INT NOT NULL,
@@ -614,13 +645,15 @@ func createServerToolsTable(db *sql.DB) error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (server_id, tool_id),
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
-			FOREIGN KEY (tool_id) REFERENCES tools(id) ON DELETE CASCADE,
-			INDEX idx_server (server_id),
-			INDEX idx_tool (tool_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			FOREIGN KEY (tool_id) REFERENCES tools(id) ON DELETE CASCADE
+		);
+		CREATE INDEX idx_server ON server_tools(server_id);
+		CREATE INDEX idx_tool ON server_tools(tool_id)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -632,12 +665,11 @@ func dropServerToolsTable(db *sql.DB) error {
 
 // createServerResourcesTable creates the server_resources table
 func createServerResourcesTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE server_resources (
 			server_id INTEGER NOT NULL,
@@ -647,7 +679,7 @@ func createServerResourcesTable(db *sql.DB) error {
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
 			FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE server_resources (
 			server_id INT NOT NULL,
@@ -655,13 +687,15 @@ func createServerResourcesTable(db *sql.DB) error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (server_id, resource_id),
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
-			FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE,
-			INDEX idx_server (server_id),
-			INDEX idx_resource (resource_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
+		);
+		CREATE INDEX idx_server ON server_resources(server_id);
+		CREATE INDEX idx_resource ON server_resources(resource_id)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -673,12 +707,11 @@ func dropServerResourcesTable(db *sql.DB) error {
 
 // createServerPromptsTable creates the server_prompts table
 func createServerPromptsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE server_prompts (
 			server_id INTEGER NOT NULL,
@@ -688,7 +721,7 @@ func createServerPromptsTable(db *sql.DB) error {
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
 			FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE server_prompts (
 			server_id INT NOT NULL,
@@ -696,13 +729,15 @@ func createServerPromptsTable(db *sql.DB) error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (server_id, prompt_id),
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
-			FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE,
-			INDEX idx_server (server_id),
-			INDEX idx_prompt (prompt_id)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE
+		);
+		CREATE INDEX idx_server ON server_prompts(server_id);
+		CREATE INDEX idx_prompt ON server_prompts(prompt_id)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -714,12 +749,11 @@ func dropServerPromptsTable(db *sql.DB) error {
 
 // createToolMetricsTable creates the tool_metrics table
 func createToolMetricsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE tool_metrics (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -738,10 +772,10 @@ func createToolMetricsTable(db *sql.DB) error {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE SET NULL
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE tool_metrics (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
+			id BIGSERIAL PRIMARY KEY,
 			tool_id INT NOT NULL,
 			user_id INT,
 			request_id VARCHAR(100),
@@ -755,15 +789,17 @@ func createToolMetricsTable(db *sql.DB) error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (tool_id) REFERENCES tools(id) ON DELETE CASCADE,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE SET NULL,
-			INDEX idx_tool_id (tool_id),
-			INDEX idx_user_id (user_id),
-			INDEX idx_created_at (created_at),
-			INDEX idx_success (success)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE SET NULL
+		);
+		CREATE INDEX idx_tool_id ON tool_metrics(tool_id);
+		CREATE INDEX idx_user_id ON tool_metrics(user_id);
+		CREATE INDEX idx_created_at ON tool_metrics(created_at);
+		CREATE INDEX idx_success ON tool_metrics(success)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -775,12 +811,11 @@ func dropToolMetricsTable(db *sql.DB) error {
 
 // createActivitiesTable creates the activities table
 func createActivitiesTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE activities (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -799,10 +834,10 @@ func createActivitiesTable(db *sql.DB) error {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE activities (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
+			id BIGSERIAL PRIMARY KEY,
 			user_id INT,
 			user_email VARCHAR(255),
 			action VARCHAR(100) NOT NULL,
@@ -816,15 +851,17 @@ func createActivitiesTable(db *sql.DB) error {
 			user_agent VARCHAR(500),
 			request_id VARCHAR(100),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-			INDEX idx_user_id (user_id),
-			INDEX idx_action (action),
-			INDEX idx_entity (entity_type, entity_id),
-			INDEX idx_created_at (created_at)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+		);
+		CREATE INDEX idx_user_id ON activities(user_id);
+		CREATE INDEX idx_action ON activities(action);
+		CREATE INDEX idx_entity ON activities(entity_type, entity_id);
+		CREATE INDEX idx_created_at ON activities(created_at)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -836,12 +873,11 @@ func dropActivitiesTable(db *sql.DB) error {
 
 // createUsersMetaTable creates the users_meta table
 func createUsersMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE users_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -853,23 +889,25 @@ func createUsersMetaTable(db *sql.DB) error {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 			UNIQUE(user_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE users_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			user_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_user_key (user_id, key),
-			INDEX idx_user_id (user_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (user_id, key)
+		);
+		CREATE INDEX idx_user_id ON users_meta(user_id);
+		CREATE INDEX idx_key ON users_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -881,12 +919,11 @@ func dropUsersMetaTable(db *sql.DB) error {
 
 // createSessionsTable creates the sessions table
 func createSessionsTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE sessions (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -899,25 +936,27 @@ func createSessionsTable(db *sql.DB) error {
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE sessions (
-			id BIGINT AUTO_INCREMENT PRIMARY KEY,
+			id BIGSERIAL PRIMARY KEY,
 			token VARCHAR(255) NOT NULL UNIQUE,
 			user_id INT NOT NULL,
 			ip_address VARCHAR(45),
 			user_agent VARCHAR(500),
 			expires_at TIMESTAMP NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-			INDEX idx_token (token),
-			INDEX idx_user_id (user_id),
-			INDEX idx_expires_at (expires_at)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		);
+		CREATE INDEX idx_token ON sessions(token);
+		CREATE INDEX idx_user_id ON sessions(user_id);
+		CREATE INDEX idx_expires_at ON sessions(expires_at)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -929,12 +968,11 @@ func dropSessionsTable(db *sql.DB) error {
 
 // createMcpsMetaTable creates the mcps_meta table
 func createMcpsMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE mcps_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -946,23 +984,25 @@ func createMcpsMetaTable(db *sql.DB) error {
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
 			UNIQUE(mcp_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE mcps_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			mcp_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (mcp_id) REFERENCES mcps(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_mcp_key (mcp_id, key),
-			INDEX idx_mcp_id (mcp_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (mcp_id, key)
+		);
+		CREATE INDEX idx_mcp_id ON mcps_meta(mcp_id);
+		CREATE INDEX idx_key ON mcps_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -974,12 +1014,11 @@ func dropMcpsMetaTable(db *sql.DB) error {
 
 // createServersMetaTable creates the servers_meta table
 func createServersMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE servers_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -991,23 +1030,25 @@ func createServersMetaTable(db *sql.DB) error {
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
 			UNIQUE(server_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE servers_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			server_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_server_key (server_id, key),
-			INDEX idx_server_id (server_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (server_id, key)
+		);
+		CREATE INDEX idx_server_id ON servers_meta(server_id);
+		CREATE INDEX idx_key ON servers_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -1019,12 +1060,11 @@ func dropServersMetaTable(db *sql.DB) error {
 
 // createToolsMetaTable creates the tools_meta table
 func createToolsMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE tools_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1036,23 +1076,25 @@ func createToolsMetaTable(db *sql.DB) error {
 			FOREIGN KEY (tool_id) REFERENCES tools(id) ON DELETE CASCADE,
 			UNIQUE(tool_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE tools_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			tool_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (tool_id) REFERENCES tools(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_tool_key (tool_id, key),
-			INDEX idx_tool_id (tool_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (tool_id, key)
+		);
+		CREATE INDEX idx_tool_id ON tools_meta(tool_id);
+		CREATE INDEX idx_key ON tools_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -1064,12 +1106,11 @@ func dropToolsMetaTable(db *sql.DB) error {
 
 // createResourcesMetaTable creates the resources_meta table
 func createResourcesMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE resources_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1081,23 +1122,25 @@ func createResourcesMetaTable(db *sql.DB) error {
 			FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE,
 			UNIQUE(resource_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE resources_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			resource_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_resource_key (resource_id, key),
-			INDEX idx_resource_id (resource_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (resource_id, key)
+		);
+		CREATE INDEX idx_resource_id ON resources_meta(resource_id);
+		CREATE INDEX idx_key ON resources_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -1109,12 +1152,11 @@ func dropResourcesMetaTable(db *sql.DB) error {
 
 // createPromptsMetaTable creates the prompts_meta table
 func createPromptsMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE prompts_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1126,23 +1168,25 @@ func createPromptsMetaTable(db *sql.DB) error {
 			FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE,
 			UNIQUE(prompt_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE prompts_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			prompt_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (prompt_id) REFERENCES prompts(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_prompt_key (prompt_id, key),
-			INDEX idx_prompt_id (prompt_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (prompt_id, key)
+		);
+		CREATE INDEX idx_prompt_id ON prompts_meta(prompt_id);
+		CREATE INDEX idx_key ON prompts_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 
@@ -1154,12 +1198,11 @@ func dropPromptsMetaTable(db *sql.DB) error {
 
 // createGatewaysMetaTable creates the gateways_meta table
 func createGatewaysMetaTable(db *sql.DB) error {
-	_, err := db.Exec("SELECT sqlite_version()")
-	isSQLite := err == nil
-
+	driver := detectDriver(db)
 	var query string
 
-	if isSQLite {
+	switch driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE gateways_meta (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1171,23 +1214,25 @@ func createGatewaysMetaTable(db *sql.DB) error {
 			FOREIGN KEY (gateway_id) REFERENCES gateways(id) ON DELETE CASCADE,
 			UNIQUE(gateway_id, key)
 		)`
-	} else {
+	case "postgres":
 		query = `
 		CREATE TABLE gateways_meta (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			key VARCHAR(255) NOT NULL,
 			value TEXT,
 			gateway_id INT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (gateway_id) REFERENCES gateways(id) ON DELETE CASCADE,
-			UNIQUE KEY unique_gateway_key (gateway_id, key),
-			INDEX idx_gateway_id (gateway_id),
-			INDEX idx_key (key)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			UNIQUE (gateway_id, key)
+		);
+		CREATE INDEX idx_gateway_id ON gateways_meta(gateway_id);
+		CREATE INDEX idx_key ON gateways_meta(key)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s", driver)
 	}
 
-	_, err = db.Exec(query)
+	_, err := db.Exec(query)
 	return err
 }
 

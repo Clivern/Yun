@@ -17,7 +17,7 @@ func TestDefaultCookieOptions(t *testing.T) {
 	opts := DefaultCookieOptions()
 
 	assert.Equal(t, "/", opts.Path)
-	assert.True(t, opts.HttpOnly)
+	assert.True(t, opts.HTTPOnly)
 	assert.False(t, opts.Secure)
 	assert.Equal(t, http.SameSiteLaxMode, opts.SameSite)
 }
@@ -26,7 +26,7 @@ func TestSecureCookieOptions(t *testing.T) {
 	opts := SecureCookieOptions()
 
 	assert.Equal(t, "/", opts.Path)
-	assert.True(t, opts.HttpOnly)
+	assert.True(t, opts.HTTPOnly)
 	assert.True(t, opts.Secure)
 	assert.Equal(t, http.SameSiteStrictMode, opts.SameSite)
 }
@@ -80,7 +80,7 @@ func TestSetCookieWithExpires(t *testing.T) {
 	assert.False(t, cookie.Expires.IsZero())
 
 	// Expires should be approximately Now + MaxAge seconds
-	expectedExpires := time.Now().Add(time.Duration(opts.MaxAge) * time.Second)
+	expectedExpires := time.Now().UTC().Add(time.Duration(opts.MaxAge) * time.Second)
 	timeDiff := cookie.Expires.Sub(expectedExpires)
 	if timeDiff < 0 {
 		timeDiff = -timeDiff
@@ -223,7 +223,7 @@ func TestCookieOptionsCustomization(t *testing.T) {
 		Path:     "/api",
 		Domain:   "example.com",
 		Secure:   true,
-		HttpOnly: true,
+		HTTPOnly: true,
 		SameSite: http.SameSiteNoneMode,
 	}
 

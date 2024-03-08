@@ -15,7 +15,7 @@ import (
 
 // setupUserTestDB creates a test database with users and users_meta tables
 func setupUserTestDB(t *testing.T) (*Connection, func()) {
-	tmpFile := "/tmp/test_users_" + time.Now().Format("20060102150405") + ".db"
+	tmpFile := "/tmp/test_users_" + time.Now().UTC().Format("20060102150405") + ".db"
 
 	config := Config{
 		Driver:     "sqlite",
@@ -113,7 +113,7 @@ func TestUserRepository_Create(t *testing.T) {
 	})
 
 	t.Run("Create user with last login", func(t *testing.T) {
-		now := time.Now()
+		now := time.Now().UTC()
 		user := &User{
 			Email:       "login@example.com",
 			Password:    "password",
@@ -425,10 +425,10 @@ func TestUserRepository_UpdateLastLogin(t *testing.T) {
 		assert.True(t, fetched.LastLoginAt.IsZero())
 
 		// Update last login
-		beforeUpdate := time.Now()
+		beforeUpdate := time.Now().UTC()
 		err = repo.UpdateLastLogin(user.ID)
 		assert.NoError(t, err)
-		afterUpdate := time.Now()
+		afterUpdate := time.Now().UTC()
 
 		// Verify last login was set
 		fetched, err = repo.GetByID(user.ID)

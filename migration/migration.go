@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package migration provides database migration management functionality.
 package migration
 
 import (
@@ -46,7 +47,8 @@ func (m *Manager) Register(migration Migration) {
 func (m *Manager) createMigrationsTable() error {
 	var query string
 
-	if m.driver == "sqlite" {
+	switch m.driver {
+	case "sqlite":
 		query = `
 		CREATE TABLE IF NOT EXISTS migrations (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,15 +56,17 @@ func (m *Manager) createMigrationsTable() error {
 			description TEXT,
 			applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`
-	} else {
+	case "postgres", "postgresql":
 		query = `
 		CREATE TABLE IF NOT EXISTS migrations (
-			id INT AUTO_INCREMENT PRIMARY KEY,
+			id SERIAL PRIMARY KEY,
 			version VARCHAR(255) NOT NULL UNIQUE,
 			description TEXT,
-			applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			INDEX idx_version (version)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
+			applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX IF NOT EXISTS idx_version ON migrations(version)`
+	default:
+		return fmt.Errorf("unsupported database driver: %s (supported: sqlite, postgres, postgresql)", m.driver)
 	}
 
 	_, err := m.db.Exec(query)
@@ -89,7 +93,7 @@ func (m *Manager) recordMigration(version, description string) error {
 		"INSERT INTO migrations (version, description, applied_at) VALUES (?, ?, ?)",
 		version,
 		description,
-		time.Now(),
+		time.Now().UTC(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to record migration: %w", err)

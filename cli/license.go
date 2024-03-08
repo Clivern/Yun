@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package cli provides command-line interface commands for the Yun application.
 package cli
 
 import (
@@ -13,7 +14,7 @@ import (
 var licenseCmd = &cobra.Command{
 	Use:   "license",
 	Short: "Print the license",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println(`MIT License
 
 Copyright (c) 2025 Clivern

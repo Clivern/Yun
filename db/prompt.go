@@ -39,9 +39,10 @@ func NewPromptRepository(db *sql.DB) *PromptRepository {
 // Create inserts a new prompt into the database.
 func (r *PromptRepository) Create(prompt *Prompt) error {
 	result, err := r.db.Exec(
-		`INSERT INTO prompts (name, original_name, mcp_id, description, template, arguments,
-		is_enabled, tags, use_count, last_used_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO prompts (
+			name, original_name, mcp_id, description, template, arguments,
+			is_enabled, tags, use_count, last_used_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		prompt.Name,
 		prompt.OriginalName,
 		prompt.MCPID,
@@ -65,13 +66,27 @@ func (r *PromptRepository) Create(prompt *Prompt) error {
 func (r *PromptRepository) GetByID(id int64) (*Prompt, error) {
 	prompt := &Prompt{}
 	err := r.db.QueryRow(
-		`SELECT id, name, original_name, mcp_id, description, template, arguments,
-		is_enabled, tags, use_count, last_used_at, created_at, updated_at
-		FROM prompts WHERE id = ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, template, arguments,
+			is_enabled, tags, use_count, last_used_at, created_at, updated_at
+		FROM prompts
+		WHERE id = ?`,
 		id,
-	).Scan(&prompt.ID, &prompt.Name, &prompt.OriginalName, &prompt.MCPID, &prompt.Description,
-		&prompt.Template, &prompt.Arguments, &prompt.IsEnabled, &prompt.Tags, &prompt.UseCount,
-		&prompt.LastUsedAt, &prompt.CreatedAt, &prompt.UpdatedAt)
+	).Scan(
+		&prompt.ID,
+		&prompt.Name,
+		&prompt.OriginalName,
+		&prompt.MCPID,
+		&prompt.Description,
+		&prompt.Template,
+		&prompt.Arguments,
+		&prompt.IsEnabled,
+		&prompt.Tags,
+		&prompt.UseCount,
+		&prompt.LastUsedAt,
+		&prompt.CreatedAt,
+		&prompt.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -87,14 +102,28 @@ func (r *PromptRepository) GetByID(id int64) (*Prompt, error) {
 func (r *PromptRepository) GetByMCPAndName(mcpID int64, originalName string) (*Prompt, error) {
 	prompt := &Prompt{}
 	err := r.db.QueryRow(
-		`SELECT id, name, original_name, mcp_id, description, template, arguments,
-		is_enabled, tags, use_count, last_used_at, created_at, updated_at
-		FROM prompts WHERE mcp_id = ? AND original_name = ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, template, arguments,
+			is_enabled, tags, use_count, last_used_at, created_at, updated_at
+		FROM prompts
+		WHERE mcp_id = ? AND original_name = ?`,
 		mcpID,
 		originalName,
-	).Scan(&prompt.ID, &prompt.Name, &prompt.OriginalName, &prompt.MCPID, &prompt.Description,
-		&prompt.Template, &prompt.Arguments, &prompt.IsEnabled, &prompt.Tags, &prompt.UseCount,
-		&prompt.LastUsedAt, &prompt.CreatedAt, &prompt.UpdatedAt)
+	).Scan(
+		&prompt.ID,
+		&prompt.Name,
+		&prompt.OriginalName,
+		&prompt.MCPID,
+		&prompt.Description,
+		&prompt.Template,
+		&prompt.Arguments,
+		&prompt.IsEnabled,
+		&prompt.Tags,
+		&prompt.UseCount,
+		&prompt.LastUsedAt,
+		&prompt.CreatedAt,
+		&prompt.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -109,9 +138,11 @@ func (r *PromptRepository) GetByMCPAndName(mcpID int64, originalName string) (*P
 // Update updates a prompt's information.
 func (r *PromptRepository) Update(prompt *Prompt) error {
 	_, err := r.db.Exec(
-		`UPDATE prompts SET name = ?, original_name = ?, mcp_id = ?, description = ?,
-		template = ?, arguments = ?, is_enabled = ?, tags = ?, use_count = ?,
-		last_used_at = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE prompts SET
+			name = ?, original_name = ?, mcp_id = ?, description = ?,
+			template = ?, arguments = ?, is_enabled = ?, tags = ?, use_count = ?,
+			last_used_at = ?, updated_at = ?
+		WHERE id = ?`,
 		prompt.Name,
 		prompt.OriginalName,
 		prompt.MCPID,
@@ -122,7 +153,7 @@ func (r *PromptRepository) Update(prompt *Prompt) error {
 		prompt.Tags,
 		prompt.UseCount,
 		prompt.LastUsedAt,
-		time.Now(),
+		time.Now().UTC(),
 		prompt.ID,
 	)
 	return err
@@ -130,10 +161,11 @@ func (r *PromptRepository) Update(prompt *Prompt) error {
 
 // UpdateUseMetrics updates the usage metrics for a prompt.
 func (r *PromptRepository) UpdateUseMetrics(id int64) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	_, err := r.db.Exec(
-		`UPDATE prompts SET use_count = use_count + 1, last_used_at = ?,
-		updated_at = ? WHERE id = ?`,
+		`UPDATE prompts SET
+			use_count = use_count + 1, last_used_at = ?, updated_at = ?
+		WHERE id = ?`,
 		now,
 		now,
 		id,
@@ -150,9 +182,12 @@ func (r *PromptRepository) Delete(id int64) error {
 // List retrieves all prompts with pagination.
 func (r *PromptRepository) List(limit, offset int) ([]*Prompt, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, mcp_id, description, template, arguments,
-		is_enabled, tags, use_count, last_used_at, created_at, updated_at
-		FROM prompts ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, template, arguments,
+			is_enabled, tags, use_count, last_used_at, created_at, updated_at
+		FROM prompts
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -167,9 +202,13 @@ func (r *PromptRepository) List(limit, offset int) ([]*Prompt, error) {
 // ListByMCP retrieves all prompts for a specific MCP connection.
 func (r *PromptRepository) ListByMCP(mcpID int64, limit, offset int) ([]*Prompt, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, mcp_id, description, template, arguments,
-		is_enabled, tags, use_count, last_used_at, created_at, updated_at
-		FROM prompts WHERE mcp_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, template, arguments,
+			is_enabled, tags, use_count, last_used_at, created_at, updated_at
+		FROM prompts
+		WHERE mcp_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		mcpID,
 		limit,
 		offset,
@@ -193,10 +232,21 @@ func (r *PromptRepository) scanPrompts(rows *sql.Rows) ([]*Prompt, error) {
 	var prompts []*Prompt
 	for rows.Next() {
 		prompt := &Prompt{}
-		if err := rows.Scan(&prompt.ID, &prompt.Name, &prompt.OriginalName, &prompt.MCPID,
-			&prompt.Description, &prompt.Template, &prompt.Arguments, &prompt.IsEnabled,
-			&prompt.Tags, &prompt.UseCount, &prompt.LastUsedAt,
-			&prompt.CreatedAt, &prompt.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&prompt.ID,
+			&prompt.Name,
+			&prompt.OriginalName,
+			&prompt.MCPID,
+			&prompt.Description,
+			&prompt.Template,
+			&prompt.Arguments,
+			&prompt.IsEnabled,
+			&prompt.Tags,
+			&prompt.UseCount,
+			&prompt.LastUsedAt,
+			&prompt.CreatedAt,
+			&prompt.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		prompts = append(prompts, prompt)
@@ -239,10 +289,19 @@ func (r *PromptMetaRepository) Create(promptID int64, key, value string) error {
 func (r *PromptMetaRepository) Get(promptID int64, key string) (*PromptMeta, error) {
 	meta := &PromptMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, prompt_id, created_at, updated_at FROM prompts_meta WHERE prompt_id = ? AND key = ?",
+		`SELECT id, key, value, prompt_id, created_at, updated_at
+		FROM prompts_meta
+		WHERE prompt_id = ? AND key = ?`,
 		promptID,
 		key,
-	).Scan(&meta.ID, &meta.Key, &meta.Value, &meta.PromptID, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.ID,
+		&meta.Key,
+		&meta.Value,
+		&meta.PromptID,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -257,9 +316,11 @@ func (r *PromptMetaRepository) Get(promptID int64, key string) (*PromptMeta, err
 // Update updates metadata for a prompt.
 func (r *PromptMetaRepository) Update(promptID int64, key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE prompts_meta SET value = ?, updated_at = ? WHERE prompt_id = ? AND key = ?",
+		`UPDATE prompts_meta SET
+			value = ?, updated_at = ?
+		WHERE prompt_id = ? AND key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		promptID,
 		key,
 	)
@@ -279,7 +340,10 @@ func (r *PromptMetaRepository) Delete(promptID int64, key string) error {
 // ListByPrompt retrieves all metadata for a prompt.
 func (r *PromptMetaRepository) ListByPrompt(promptID int64) ([]*PromptMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, prompt_id, created_at, updated_at FROM prompts_meta WHERE prompt_id = ? ORDER BY key",
+		`SELECT id, key, value, prompt_id, created_at, updated_at
+		FROM prompts_meta
+		WHERE prompt_id = ?
+		ORDER BY key`,
 		promptID,
 	)
 	if err != nil {
@@ -290,7 +354,14 @@ func (r *PromptMetaRepository) ListByPrompt(promptID int64) ([]*PromptMeta, erro
 	var metadata []*PromptMeta
 	for rows.Next() {
 		meta := &PromptMeta{}
-		if err := rows.Scan(&meta.ID, &meta.Key, &meta.Value, &meta.PromptID, &meta.CreatedAt, &meta.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&meta.ID,
+			&meta.Key,
+			&meta.Value,
+			&meta.PromptID,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metadata = append(metadata, meta)

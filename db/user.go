@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// User role constants
 const (
 	UserRoleAdmin    = "admin"
 	UserRoleUser     = "user"
@@ -75,7 +76,8 @@ func (r *UserRepository) GetByID(id int64) (*User, error) {
 	user := &User{}
 	err := r.db.QueryRow(
 		`SELECT id, email, password, role, api_key, is_active, last_login_at, created_at, updated_at
-		FROM users WHERE id = ?`,
+		FROM users
+		WHERE id = ?`,
 		id,
 	).Scan(
 		&user.ID,
@@ -104,7 +106,8 @@ func (r *UserRepository) GetByEmail(email string) (*User, error) {
 	user := &User{}
 	err := r.db.QueryRow(
 		`SELECT id, email, password, role, api_key, is_active, last_login_at, created_at, updated_at
-		FROM users WHERE email = ?`,
+		FROM users
+		WHERE email = ?`,
 		email,
 	).Scan(
 		&user.ID,
@@ -133,7 +136,8 @@ func (r *UserRepository) GetByAPIKey(apiKey string) (*User, error) {
 	user := &User{}
 	err := r.db.QueryRow(
 		`SELECT id, email, password, role, api_key, is_active, last_login_at, created_at, updated_at
-		FROM users WHERE api_key = ?`,
+		FROM users
+		WHERE api_key = ?`,
 		apiKey,
 	).Scan(
 		&user.ID,
@@ -160,15 +164,17 @@ func (r *UserRepository) GetByAPIKey(apiKey string) (*User, error) {
 // Update updates a user's information.
 func (r *UserRepository) Update(user *User) error {
 	_, err := r.db.Exec(
-		`UPDATE users SET email = ?, password = ?, role = ?, api_key = ?, is_active = ?,
-		last_login_at = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE users SET
+			email = ?, password = ?, role = ?, api_key = ?, is_active = ?,
+			last_login_at = ?, updated_at = ?
+		WHERE id = ?`,
 		user.Email,
 		user.Password,
 		user.Role,
 		user.APIKey,
 		user.IsActive,
 		user.LastLoginAt,
-		time.Now(),
+		time.Now().UTC(),
 		user.ID,
 	)
 	return err
@@ -176,9 +182,11 @@ func (r *UserRepository) Update(user *User) error {
 
 // UpdateLastLogin updates the user's last login timestamp.
 func (r *UserRepository) UpdateLastLogin(id int64) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	_, err := r.db.Exec(
-		`UPDATE users SET last_login_at = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE users SET
+			last_login_at = ?, updated_at = ?
+		WHERE id = ?`,
 		now,
 		now,
 		id,
@@ -196,7 +204,9 @@ func (r *UserRepository) Delete(id int64) error {
 func (r *UserRepository) List(limit, offset int) ([]*User, error) {
 	rows, err := r.db.Query(
 		`SELECT id, email, password, role, api_key, is_active, last_login_at, created_at, updated_at
-		FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		FROM users
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -269,7 +279,9 @@ func (r *UserMetaRepository) Create(userID int64, key, value string) error {
 func (r *UserMetaRepository) Get(userID int64, key string) (*UserMeta, error) {
 	meta := &UserMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, user_id, created_at, updated_at FROM users_meta WHERE user_id = ? AND key = ?",
+		`SELECT id, key, value, user_id, created_at, updated_at
+		FROM users_meta
+		WHERE user_id = ? AND key = ?`,
 		userID,
 		key,
 	).Scan(
@@ -294,9 +306,11 @@ func (r *UserMetaRepository) Get(userID int64, key string) (*UserMeta, error) {
 // Update updates metadata for a user.
 func (r *UserMetaRepository) Update(userID int64, key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE users_meta SET value = ?, updated_at = ? WHERE user_id = ? AND key = ?",
+		`UPDATE users_meta SET
+			value = ?, updated_at = ?
+		WHERE user_id = ? AND key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		userID,
 		key,
 	)
@@ -316,7 +330,10 @@ func (r *UserMetaRepository) Delete(userID int64, key string) error {
 // ListByUser retrieves all metadata for a user.
 func (r *UserMetaRepository) ListByUser(userID int64) ([]*UserMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, user_id, created_at, updated_at FROM users_meta WHERE user_id = ? ORDER BY key",
+		`SELECT id, key, value, user_id, created_at, updated_at
+		FROM users_meta
+		WHERE user_id = ?
+		ORDER BY key`,
 		userID,
 	)
 	if err != nil {

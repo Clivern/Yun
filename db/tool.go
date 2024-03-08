@@ -43,9 +43,11 @@ func NewToolRepository(db *sql.DB) *ToolRepository {
 // Create inserts a new tool into the database.
 func (r *ToolRepository) Create(tool *Tool) error {
 	result, err := r.db.Exec(
-		`INSERT INTO tools (name, original_name, mcp_id, description, input_schema, is_enabled,
-		timeout_ms, max_retries, tags, category, call_count, last_called_at, avg_response_time_ms,
-		error_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO tools (
+			name, original_name, mcp_id, description, input_schema, is_enabled,
+			timeout_ms, max_retries, tags, category, call_count, last_called_at,
+			avg_response_time_ms, error_count
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		tool.Name,
 		tool.OriginalName,
 		tool.MCPID,
@@ -73,14 +75,32 @@ func (r *ToolRepository) Create(tool *Tool) error {
 func (r *ToolRepository) GetByID(id int64) (*Tool, error) {
 	tool := &Tool{}
 	err := r.db.QueryRow(
-		`SELECT id, name, original_name, mcp_id, description, input_schema, is_enabled,
-		timeout_ms, max_retries, tags, category, call_count, last_called_at, avg_response_time_ms,
-		error_count, created_at, updated_at FROM tools WHERE id = ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, input_schema, is_enabled,
+			timeout_ms, max_retries, tags, category, call_count, last_called_at,
+			avg_response_time_ms, error_count, created_at, updated_at
+		FROM tools
+		WHERE id = ?`,
 		id,
-	).Scan(&tool.ID, &tool.Name, &tool.OriginalName, &tool.MCPID, &tool.Description,
-		&tool.InputSchema, &tool.IsEnabled, &tool.TimeoutMs, &tool.MaxRetries, &tool.Tags,
-		&tool.Category, &tool.CallCount, &tool.LastCalledAt, &tool.AvgResponseTimeMs,
-		&tool.ErrorCount, &tool.CreatedAt, &tool.UpdatedAt)
+	).Scan(
+		&tool.ID,
+		&tool.Name,
+		&tool.OriginalName,
+		&tool.MCPID,
+		&tool.Description,
+		&tool.InputSchema,
+		&tool.IsEnabled,
+		&tool.TimeoutMs,
+		&tool.MaxRetries,
+		&tool.Tags,
+		&tool.Category,
+		&tool.CallCount,
+		&tool.LastCalledAt,
+		&tool.AvgResponseTimeMs,
+		&tool.ErrorCount,
+		&tool.CreatedAt,
+		&tool.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -96,15 +116,33 @@ func (r *ToolRepository) GetByID(id int64) (*Tool, error) {
 func (r *ToolRepository) GetByMCPAndName(mcpID int64, originalName string) (*Tool, error) {
 	tool := &Tool{}
 	err := r.db.QueryRow(
-		`SELECT id, name, original_name, mcp_id, description, input_schema, is_enabled,
-		timeout_ms, max_retries, tags, category, call_count, last_called_at, avg_response_time_ms,
-		error_count, created_at, updated_at FROM tools WHERE mcp_id = ? AND original_name = ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, input_schema, is_enabled,
+			timeout_ms, max_retries, tags, category, call_count, last_called_at,
+			avg_response_time_ms, error_count, created_at, updated_at
+		FROM tools
+		WHERE mcp_id = ? AND original_name = ?`,
 		mcpID,
 		originalName,
-	).Scan(&tool.ID, &tool.Name, &tool.OriginalName, &tool.MCPID, &tool.Description,
-		&tool.InputSchema, &tool.IsEnabled, &tool.TimeoutMs, &tool.MaxRetries, &tool.Tags,
-		&tool.Category, &tool.CallCount, &tool.LastCalledAt, &tool.AvgResponseTimeMs,
-		&tool.ErrorCount, &tool.CreatedAt, &tool.UpdatedAt)
+	).Scan(
+		&tool.ID,
+		&tool.Name,
+		&tool.OriginalName,
+		&tool.MCPID,
+		&tool.Description,
+		&tool.InputSchema,
+		&tool.IsEnabled,
+		&tool.TimeoutMs,
+		&tool.MaxRetries,
+		&tool.Tags,
+		&tool.Category,
+		&tool.CallCount,
+		&tool.LastCalledAt,
+		&tool.AvgResponseTimeMs,
+		&tool.ErrorCount,
+		&tool.CreatedAt,
+		&tool.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -119,10 +157,12 @@ func (r *ToolRepository) GetByMCPAndName(mcpID int64, originalName string) (*Too
 // Update updates a tool's information.
 func (r *ToolRepository) Update(tool *Tool) error {
 	_, err := r.db.Exec(
-		`UPDATE tools SET name = ?, original_name = ?, mcp_id = ?, description = ?,
-		input_schema = ?, is_enabled = ?, timeout_ms = ?, max_retries = ?, tags = ?,
-		category = ?, call_count = ?, last_called_at = ?, avg_response_time_ms = ?,
-		error_count = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE tools SET
+			name = ?, original_name = ?, mcp_id = ?, description = ?,
+			input_schema = ?, is_enabled = ?, timeout_ms = ?, max_retries = ?,
+			tags = ?, category = ?, call_count = ?, last_called_at = ?,
+			avg_response_time_ms = ?, error_count = ?, updated_at = ?
+		WHERE id = ?`,
 		tool.Name,
 		tool.OriginalName,
 		tool.MCPID,
@@ -137,7 +177,7 @@ func (r *ToolRepository) Update(tool *Tool) error {
 		tool.LastCalledAt,
 		tool.AvgResponseTimeMs,
 		tool.ErrorCount,
-		time.Now(),
+		time.Now().UTC(),
 		tool.ID,
 	)
 	return err
@@ -159,10 +199,12 @@ func (r *ToolRepository) UpdateCallMetrics(id int64, responseTimeMs int, success
 		newErrorCount++
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	_, err = r.db.Exec(
-		`UPDATE tools SET call_count = ?, last_called_at = ?, avg_response_time_ms = ?,
-		error_count = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE tools SET
+			call_count = ?, last_called_at = ?, avg_response_time_ms = ?,
+			error_count = ?, updated_at = ?
+		WHERE id = ?`,
 		newCallCount,
 		now,
 		newAvg,
@@ -182,9 +224,13 @@ func (r *ToolRepository) Delete(id int64) error {
 // List retrieves all tools with pagination.
 func (r *ToolRepository) List(limit, offset int) ([]*Tool, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, mcp_id, description, input_schema, is_enabled,
-		timeout_ms, max_retries, tags, category, call_count, last_called_at, avg_response_time_ms,
-		error_count, created_at, updated_at FROM tools ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, input_schema, is_enabled,
+			timeout_ms, max_retries, tags, category, call_count, last_called_at,
+			avg_response_time_ms, error_count, created_at, updated_at
+		FROM tools
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -199,9 +245,14 @@ func (r *ToolRepository) List(limit, offset int) ([]*Tool, error) {
 // ListByMCP retrieves all tools for a specific MCP connection.
 func (r *ToolRepository) ListByMCP(mcpID int64, limit, offset int) ([]*Tool, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, mcp_id, description, input_schema, is_enabled,
-		timeout_ms, max_retries, tags, category, call_count, last_called_at, avg_response_time_ms,
-		error_count, created_at, updated_at FROM tools WHERE mcp_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, input_schema, is_enabled,
+			timeout_ms, max_retries, tags, category, call_count, last_called_at,
+			avg_response_time_ms, error_count, created_at, updated_at
+		FROM tools
+		WHERE mcp_id = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		mcpID,
 		limit,
 		offset,
@@ -217,9 +268,14 @@ func (r *ToolRepository) ListByMCP(mcpID int64, limit, offset int) ([]*Tool, err
 // ListByCategory retrieves all tools in a specific category.
 func (r *ToolRepository) ListByCategory(category string, limit, offset int) ([]*Tool, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, original_name, mcp_id, description, input_schema, is_enabled,
-		timeout_ms, max_retries, tags, category, call_count, last_called_at, avg_response_time_ms,
-		error_count, created_at, updated_at FROM tools WHERE category = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, original_name, mcp_id, description, input_schema, is_enabled,
+			timeout_ms, max_retries, tags, category, call_count, last_called_at,
+			avg_response_time_ms, error_count, created_at, updated_at
+		FROM tools
+		WHERE category = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		category,
 		limit,
 		offset,
@@ -243,11 +299,25 @@ func (r *ToolRepository) scanTools(rows *sql.Rows) ([]*Tool, error) {
 	var tools []*Tool
 	for rows.Next() {
 		tool := &Tool{}
-		if err := rows.Scan(&tool.ID, &tool.Name, &tool.OriginalName, &tool.MCPID,
-			&tool.Description, &tool.InputSchema, &tool.IsEnabled, &tool.TimeoutMs,
-			&tool.MaxRetries, &tool.Tags, &tool.Category, &tool.CallCount,
-			&tool.LastCalledAt, &tool.AvgResponseTimeMs, &tool.ErrorCount,
-			&tool.CreatedAt, &tool.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&tool.ID,
+			&tool.Name,
+			&tool.OriginalName,
+			&tool.MCPID,
+			&tool.Description,
+			&tool.InputSchema,
+			&tool.IsEnabled,
+			&tool.TimeoutMs,
+			&tool.MaxRetries,
+			&tool.Tags,
+			&tool.Category,
+			&tool.CallCount,
+			&tool.LastCalledAt,
+			&tool.AvgResponseTimeMs,
+			&tool.ErrorCount,
+			&tool.CreatedAt,
+			&tool.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		tools = append(tools, tool)
@@ -290,10 +360,19 @@ func (r *ToolMetaRepository) Create(toolID int64, key, value string) error {
 func (r *ToolMetaRepository) Get(toolID int64, key string) (*ToolMeta, error) {
 	meta := &ToolMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, tool_id, created_at, updated_at FROM tools_meta WHERE tool_id = ? AND key = ?",
+		`SELECT id, key, value, tool_id, created_at, updated_at
+		FROM tools_meta
+		WHERE tool_id = ? AND key = ?`,
 		toolID,
 		key,
-	).Scan(&meta.ID, &meta.Key, &meta.Value, &meta.ToolID, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.ID,
+		&meta.Key,
+		&meta.Value,
+		&meta.ToolID,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -310,7 +389,7 @@ func (r *ToolMetaRepository) Update(toolID int64, key, value string) error {
 	_, err := r.db.Exec(
 		"UPDATE tools_meta SET value = ?, updated_at = ? WHERE tool_id = ? AND key = ?",
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		toolID,
 		key,
 	)
@@ -330,7 +409,10 @@ func (r *ToolMetaRepository) Delete(toolID int64, key string) error {
 // ListByTool retrieves all metadata for a tool.
 func (r *ToolMetaRepository) ListByTool(toolID int64) ([]*ToolMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, tool_id, created_at, updated_at FROM tools_meta WHERE tool_id = ? ORDER BY key",
+		`SELECT id, key, value, tool_id, created_at, updated_at
+		FROM tools_meta
+		WHERE tool_id = ?
+		ORDER BY key`,
 		toolID,
 	)
 	if err != nil {
@@ -341,7 +423,14 @@ func (r *ToolMetaRepository) ListByTool(toolID int64) ([]*ToolMeta, error) {
 	var metadata []*ToolMeta
 	for rows.Next() {
 		meta := &ToolMeta{}
-		if err := rows.Scan(&meta.ID, &meta.Key, &meta.Value, &meta.ToolID, &meta.CreatedAt, &meta.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&meta.ID,
+			&meta.Key,
+			&meta.Value,
+			&meta.ToolID,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metadata = append(metadata, meta)

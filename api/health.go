@@ -13,7 +13,7 @@ import (
 )
 
 // HealthAction handles health check requests
-func HealthAction(w http.ResponseWriter, r *http.Request) {
+func HealthAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Health check endpoint called")
 
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{

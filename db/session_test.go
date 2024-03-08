@@ -77,7 +77,7 @@ func TestSessionRepository_Create(t *testing.T) {
 			UserID:    user.ID,
 			IPAddress: &ipAddress,
 			UserAgent: &userAgent,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 
 		// Act
@@ -108,7 +108,7 @@ func TestSessionRepository_Create(t *testing.T) {
 		session := &Session{
 			Token:     "test-token-456",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 
 		// Act
@@ -141,7 +141,7 @@ func TestSessionRepository_GetByToken(t *testing.T) {
 		session := &Session{
 			Token:     "unique-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
@@ -193,7 +193,7 @@ func TestSessionRepository_GetByID(t *testing.T) {
 		session := &Session{
 			Token:     "test-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
@@ -247,7 +247,7 @@ func TestSessionRepository_GetByUserID(t *testing.T) {
 			session := &Session{
 				Token:     "token-" + string(rune(i)),
 				UserID:    user.ID,
-				ExpiresAt: time.Now().Add(24 * time.Hour),
+				ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 			}
 			err = sessionRepo.Create(session)
 			assert.NoError(t, err)
@@ -308,7 +308,7 @@ func TestSessionRepository_Delete(t *testing.T) {
 		session := &Session{
 			Token:     "test-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
@@ -346,7 +346,7 @@ func TestSessionRepository_DeleteByToken(t *testing.T) {
 		session := &Session{
 			Token:     "test-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
@@ -386,7 +386,7 @@ func TestSessionRepository_DeleteByUserID(t *testing.T) {
 			session := &Session{
 				Token:     "token-" + string(rune(i)),
 				UserID:    user.ID,
-				ExpiresAt: time.Now().Add(24 * time.Hour),
+				ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 			}
 			err = sessionRepo.Create(session)
 			assert.NoError(t, err)
@@ -426,7 +426,7 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 		expiredSession := &Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 		}
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
@@ -435,7 +435,7 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 		activeSession := &Session{
 			Token:     "active-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(activeSession)
 		assert.NoError(t, err)
@@ -480,7 +480,7 @@ func TestSessionRepository_IsValid(t *testing.T) {
 		session := &Session{
 			Token:     "valid-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
@@ -513,7 +513,7 @@ func TestSessionRepository_IsValid(t *testing.T) {
 		session := &Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
@@ -560,7 +560,7 @@ func TestSessionRepository_UpdateExpiration(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		oldExpiration := time.Now().Add(1 * time.Hour)
+		oldExpiration := time.Now().UTC().Add(1 * time.Hour)
 		session := &Session{
 			Token:     "test-token",
 			UserID:    user.ID,
@@ -569,7 +569,7 @@ func TestSessionRepository_UpdateExpiration(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		newExpiration := time.Now().Add(48 * time.Hour)
+		newExpiration := time.Now().UTC().Add(48 * time.Hour)
 
 		// Act
 		err = sessionRepo.UpdateExpiration(session.ID, newExpiration)
@@ -607,7 +607,7 @@ func TestSessionRepository_Count(t *testing.T) {
 			session := &Session{
 				Token:     "active-token-" + string(rune(i)),
 				UserID:    user.ID,
-				ExpiresAt: time.Now().Add(24 * time.Hour),
+				ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 			}
 			err = sessionRepo.Create(session)
 			assert.NoError(t, err)
@@ -617,7 +617,7 @@ func TestSessionRepository_Count(t *testing.T) {
 		expiredSession := &Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 		}
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
@@ -663,7 +663,7 @@ func TestSessionRepository_CountByUserID(t *testing.T) {
 			session := &Session{
 				Token:     "user1-token-" + string(rune(i)),
 				UserID:    user1.ID,
-				ExpiresAt: time.Now().Add(24 * time.Hour),
+				ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 			}
 			err = sessionRepo.Create(session)
 			assert.NoError(t, err)
@@ -673,7 +673,7 @@ func TestSessionRepository_CountByUserID(t *testing.T) {
 		session := &Session{
 			Token:     "user2-token",
 			UserID:    user2.ID,
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)

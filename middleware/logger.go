@@ -32,7 +32,7 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 // Logger creates a new logger middleware
 func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		start := time.Now().UTC()
 
 		// Wrap response writer to capture status
 		wrapped := &responseWriter{

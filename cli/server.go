@@ -15,7 +15,7 @@ import (
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start the yun backend server",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		// Load configuration
 		if err := core.Load(config); err != nil {
 			panic(err.Error())

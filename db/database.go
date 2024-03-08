@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"           // PostgreSQL driver
+	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	"github.com/rs/zerolog/log"
 )
 
@@ -41,16 +41,16 @@ func NewConnection(config Config) (*Connection, error) {
 	var db *sql.DB
 
 	switch config.Driver {
-	case "mysql":
+	case "postgres", "postgresql":
 		dsn = fmt.Sprintf(
-			"%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			config.Username,
-			config.Password,
+			"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			config.Host,
 			config.Port,
+			config.Username,
+			config.Password,
 			config.Database,
 		)
-		db, err = sql.Open("mysql", dsn)
+		db, err = sql.Open("postgres", dsn)
 	case "sqlite":
 		// Use DataSource if provided, otherwise default to database name
 		dsn = config.DataSource
@@ -59,7 +59,7 @@ func NewConnection(config Config) (*Connection, error) {
 		}
 		db, err = sql.Open("sqlite3", dsn)
 	default:
-		return nil, fmt.Errorf("unsupported database driver: %s", config.Driver)
+		return nil, fmt.Errorf("unsupported database driver: %s (supported: postgres, postgresql, sqlite)", config.Driver)
 	}
 
 	if err != nil {

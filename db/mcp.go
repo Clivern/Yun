@@ -46,10 +46,11 @@ func NewMCPRepository(db *sql.DB) *MCPRepository {
 // Create inserts a new MCP connection into the database.
 func (r *MCPRepository) Create(mcp *MCP) error {
 	result, err := r.db.Exec(
-		`INSERT INTO mcps (name, slug, url, transport, auth_type, auth_token, timeout_ms,
-		max_retries, headers, status, health_check_url, last_health_check_at, health_status,
-		capabilities, protocol_version, description, tags)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO mcps (
+			name, slug, url, transport, auth_type, auth_token, timeout_ms,
+			max_retries, headers, status, health_check_url, last_health_check_at,
+			health_status, capabilities, protocol_version, description, tags
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		mcp.Name,
 		mcp.Slug,
 		mcp.URL,
@@ -80,15 +81,35 @@ func (r *MCPRepository) Create(mcp *MCP) error {
 func (r *MCPRepository) GetByID(id int64) (*MCP, error) {
 	mcp := &MCP{}
 	err := r.db.QueryRow(
-		`SELECT id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
-		headers, status, health_check_url, last_health_check_at, health_status, capabilities,
-		protocol_version, description, tags, created_at, updated_at
-		FROM mcps WHERE id = ?`,
+		`SELECT
+			id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
+			headers, status, health_check_url, last_health_check_at, health_status,
+			capabilities, protocol_version, description, tags, created_at, updated_at
+		FROM mcps
+		WHERE id = ?`,
 		id,
-	).Scan(&mcp.ID, &mcp.Name, &mcp.Slug, &mcp.URL, &mcp.Transport, &mcp.AuthType, &mcp.AuthToken,
-		&mcp.TimeoutMs, &mcp.MaxRetries, &mcp.Headers, &mcp.Status, &mcp.HealthCheckURL,
-		&mcp.LastHealthCheckAt, &mcp.HealthStatus, &mcp.Capabilities, &mcp.ProtocolVersion,
-		&mcp.Description, &mcp.Tags, &mcp.CreatedAt, &mcp.UpdatedAt)
+	).Scan(
+		&mcp.ID,
+		&mcp.Name,
+		&mcp.Slug,
+		&mcp.URL,
+		&mcp.Transport,
+		&mcp.AuthType,
+		&mcp.AuthToken,
+		&mcp.TimeoutMs,
+		&mcp.MaxRetries,
+		&mcp.Headers,
+		&mcp.Status,
+		&mcp.HealthCheckURL,
+		&mcp.LastHealthCheckAt,
+		&mcp.HealthStatus,
+		&mcp.Capabilities,
+		&mcp.ProtocolVersion,
+		&mcp.Description,
+		&mcp.Tags,
+		&mcp.CreatedAt,
+		&mcp.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -104,15 +125,35 @@ func (r *MCPRepository) GetByID(id int64) (*MCP, error) {
 func (r *MCPRepository) GetBySlug(slug string) (*MCP, error) {
 	mcp := &MCP{}
 	err := r.db.QueryRow(
-		`SELECT id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
-		headers, status, health_check_url, last_health_check_at, health_status, capabilities,
-		protocol_version, description, tags, created_at, updated_at
-		FROM mcps WHERE slug = ?`,
+		`SELECT
+			id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
+			headers, status, health_check_url, last_health_check_at, health_status,
+			capabilities, protocol_version, description, tags, created_at, updated_at
+		FROM mcps
+		WHERE slug = ?`,
 		slug,
-	).Scan(&mcp.ID, &mcp.Name, &mcp.Slug, &mcp.URL, &mcp.Transport, &mcp.AuthType, &mcp.AuthToken,
-		&mcp.TimeoutMs, &mcp.MaxRetries, &mcp.Headers, &mcp.Status, &mcp.HealthCheckURL,
-		&mcp.LastHealthCheckAt, &mcp.HealthStatus, &mcp.Capabilities, &mcp.ProtocolVersion,
-		&mcp.Description, &mcp.Tags, &mcp.CreatedAt, &mcp.UpdatedAt)
+	).Scan(
+		&mcp.ID,
+		&mcp.Name,
+		&mcp.Slug,
+		&mcp.URL,
+		&mcp.Transport,
+		&mcp.AuthType,
+		&mcp.AuthToken,
+		&mcp.TimeoutMs,
+		&mcp.MaxRetries,
+		&mcp.Headers,
+		&mcp.Status,
+		&mcp.HealthCheckURL,
+		&mcp.LastHealthCheckAt,
+		&mcp.HealthStatus,
+		&mcp.Capabilities,
+		&mcp.ProtocolVersion,
+		&mcp.Description,
+		&mcp.Tags,
+		&mcp.CreatedAt,
+		&mcp.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -127,10 +168,12 @@ func (r *MCPRepository) GetBySlug(slug string) (*MCP, error) {
 // Update updates an MCP connection's information.
 func (r *MCPRepository) Update(mcp *MCP) error {
 	_, err := r.db.Exec(
-		`UPDATE mcps SET name = ?, slug = ?, url = ?, transport = ?, auth_type = ?,
-		auth_token = ?, timeout_ms = ?, max_retries = ?, headers = ?, status = ?,
-		health_check_url = ?, last_health_check_at = ?, health_status = ?, capabilities = ?,
-		protocol_version = ?, description = ?, tags = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE mcps SET
+			name = ?, slug = ?, url = ?, transport = ?, auth_type = ?,
+			auth_token = ?, timeout_ms = ?, max_retries = ?, headers = ?, status = ?,
+			health_check_url = ?, last_health_check_at = ?, health_status = ?,
+			capabilities = ?, protocol_version = ?, description = ?, tags = ?, updated_at = ?
+		WHERE id = ?`,
 		mcp.Name,
 		mcp.Slug,
 		mcp.URL,
@@ -148,7 +191,7 @@ func (r *MCPRepository) Update(mcp *MCP) error {
 		mcp.ProtocolVersion,
 		mcp.Description,
 		mcp.Tags,
-		time.Now(),
+		time.Now().UTC(),
 		mcp.ID,
 	)
 	return err
@@ -156,9 +199,11 @@ func (r *MCPRepository) Update(mcp *MCP) error {
 
 // UpdateHealthStatus updates the health status of an MCP connection.
 func (r *MCPRepository) UpdateHealthStatus(id int64, healthStatus string) error {
-	now := time.Now()
+	now := time.Now().UTC()
 	_, err := r.db.Exec(
-		`UPDATE mcps SET health_status = ?, last_health_check_at = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE mcps SET
+			health_status = ?, last_health_check_at = ?, updated_at = ?
+		WHERE id = ?`,
 		healthStatus,
 		now,
 		now,
@@ -176,10 +221,13 @@ func (r *MCPRepository) Delete(id int64) error {
 // List retrieves all MCP connections with pagination.
 func (r *MCPRepository) List(limit, offset int) ([]*MCP, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
-		headers, status, health_check_url, last_health_check_at, health_status, capabilities,
-		protocol_version, description, tags, created_at, updated_at
-		FROM mcps ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
+			headers, status, health_check_url, last_health_check_at, health_status,
+			capabilities, protocol_version, description, tags, created_at, updated_at
+		FROM mcps
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -191,10 +239,28 @@ func (r *MCPRepository) List(limit, offset int) ([]*MCP, error) {
 	var mcps []*MCP
 	for rows.Next() {
 		mcp := &MCP{}
-		if err := rows.Scan(&mcp.ID, &mcp.Name, &mcp.Slug, &mcp.URL, &mcp.Transport, &mcp.AuthType,
-			&mcp.AuthToken, &mcp.TimeoutMs, &mcp.MaxRetries, &mcp.Headers, &mcp.Status,
-			&mcp.HealthCheckURL, &mcp.LastHealthCheckAt, &mcp.HealthStatus, &mcp.Capabilities,
-			&mcp.ProtocolVersion, &mcp.Description, &mcp.Tags, &mcp.CreatedAt, &mcp.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&mcp.ID,
+			&mcp.Name,
+			&mcp.Slug,
+			&mcp.URL,
+			&mcp.Transport,
+			&mcp.AuthType,
+			&mcp.AuthToken,
+			&mcp.TimeoutMs,
+			&mcp.MaxRetries,
+			&mcp.Headers,
+			&mcp.Status,
+			&mcp.HealthCheckURL,
+			&mcp.LastHealthCheckAt,
+			&mcp.HealthStatus,
+			&mcp.Capabilities,
+			&mcp.ProtocolVersion,
+			&mcp.Description,
+			&mcp.Tags,
+			&mcp.CreatedAt,
+			&mcp.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		mcps = append(mcps, mcp)
@@ -206,10 +272,14 @@ func (r *MCPRepository) List(limit, offset int) ([]*MCP, error) {
 // ListByStatus retrieves all MCP connections with a specific status.
 func (r *MCPRepository) ListByStatus(status string, limit, offset int) ([]*MCP, error) {
 	rows, err := r.db.Query(
-		`SELECT id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
-		headers, status, health_check_url, last_health_check_at, health_status, capabilities,
-		protocol_version, description, tags, created_at, updated_at
-		FROM mcps WHERE status = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		`SELECT
+			id, name, slug, url, transport, auth_type, auth_token, timeout_ms, max_retries,
+			headers, status, health_check_url, last_health_check_at, health_status,
+			capabilities, protocol_version, description, tags, created_at, updated_at
+		FROM mcps
+		WHERE status = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		status,
 		limit,
 		offset,
@@ -222,10 +292,28 @@ func (r *MCPRepository) ListByStatus(status string, limit, offset int) ([]*MCP, 
 	var mcps []*MCP
 	for rows.Next() {
 		mcp := &MCP{}
-		if err := rows.Scan(&mcp.ID, &mcp.Name, &mcp.Slug, &mcp.URL, &mcp.Transport, &mcp.AuthType,
-			&mcp.AuthToken, &mcp.TimeoutMs, &mcp.MaxRetries, &mcp.Headers, &mcp.Status,
-			&mcp.HealthCheckURL, &mcp.LastHealthCheckAt, &mcp.HealthStatus, &mcp.Capabilities,
-			&mcp.ProtocolVersion, &mcp.Description, &mcp.Tags, &mcp.CreatedAt, &mcp.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&mcp.ID,
+			&mcp.Name,
+			&mcp.Slug,
+			&mcp.URL,
+			&mcp.Transport,
+			&mcp.AuthType,
+			&mcp.AuthToken,
+			&mcp.TimeoutMs,
+			&mcp.MaxRetries,
+			&mcp.Headers,
+			&mcp.Status,
+			&mcp.HealthCheckURL,
+			&mcp.LastHealthCheckAt,
+			&mcp.HealthStatus,
+			&mcp.Capabilities,
+			&mcp.ProtocolVersion,
+			&mcp.Description,
+			&mcp.Tags,
+			&mcp.CreatedAt,
+			&mcp.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		mcps = append(mcps, mcp)
@@ -276,10 +364,19 @@ func (r *MCPMetaRepository) Create(mcpID int64, key, value string) error {
 func (r *MCPMetaRepository) Get(mcpID int64, key string) (*MCPMeta, error) {
 	meta := &MCPMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, mcp_id, created_at, updated_at FROM mcps_meta WHERE mcp_id = ? AND key = ?",
+		`SELECT id, key, value, mcp_id, created_at, updated_at
+		FROM mcps_meta
+		WHERE mcp_id = ? AND key = ?`,
 		mcpID,
 		key,
-	).Scan(&meta.ID, &meta.Key, &meta.Value, &meta.MCPID, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.ID,
+		&meta.Key,
+		&meta.Value,
+		&meta.MCPID,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -294,9 +391,11 @@ func (r *MCPMetaRepository) Get(mcpID int64, key string) (*MCPMeta, error) {
 // Update updates metadata for an MCP connection.
 func (r *MCPMetaRepository) Update(mcpID int64, key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE mcps_meta SET value = ?, updated_at = ? WHERE mcp_id = ? AND key = ?",
+		`UPDATE mcps_meta SET
+			value = ?, updated_at = ?
+		WHERE mcp_id = ? AND key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		mcpID,
 		key,
 	)
@@ -316,7 +415,10 @@ func (r *MCPMetaRepository) Delete(mcpID int64, key string) error {
 // ListByMCP retrieves all metadata for an MCP connection.
 func (r *MCPMetaRepository) ListByMCP(mcpID int64) ([]*MCPMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, mcp_id, created_at, updated_at FROM mcps_meta WHERE mcp_id = ? ORDER BY key",
+		`SELECT id, key, value, mcp_id, created_at, updated_at
+		FROM mcps_meta
+		WHERE mcp_id = ?
+		ORDER BY key`,
 		mcpID,
 	)
 	if err != nil {
@@ -327,7 +429,14 @@ func (r *MCPMetaRepository) ListByMCP(mcpID int64) ([]*MCPMeta, error) {
 	var metadata []*MCPMeta
 	for rows.Next() {
 		meta := &MCPMeta{}
-		if err := rows.Scan(&meta.ID, &meta.Key, &meta.Value, &meta.MCPID, &meta.CreatedAt, &meta.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&meta.ID,
+			&meta.Key,
+			&meta.Value,
+			&meta.MCPID,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metadata = append(metadata, meta)

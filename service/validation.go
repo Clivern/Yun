@@ -137,11 +137,7 @@ func DecodeAndValidate(r *http.Request, v interface{}) error {
 	}
 
 	// Validate struct
-	if err := ValidateStruct(v); err != nil {
-		return err
-	}
-
-	return nil
+	return ValidateStruct(v)
 }
 
 // WriteValidationError writes validation errors as JSON response

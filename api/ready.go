@@ -16,7 +16,7 @@ import (
 // ReadyAction handles readiness check requests
 // This endpoint verifies that the application is ready to serve traffic
 // by checking database connectivity
-func ReadyAction(w http.ResponseWriter, r *http.Request) {
+func ReadyAction(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("Readiness check endpoint called")
 
 	// Try to ping the database

@@ -14,6 +14,7 @@ import (
 // Context key for request ID
 type contextKey string
 
+// RequestIDKey is the context key for storing request IDs
 const RequestIDKey contextKey = "request_id"
 
 // RequestID middleware adds a unique request ID to each request

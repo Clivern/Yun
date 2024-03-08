@@ -15,7 +15,7 @@ import (
 
 // setupTestDB creates a test database with the options table
 func setupTestDB(t *testing.T) (*Connection, func()) {
-	tmpFile := "/tmp/test_options_" + time.Now().Format("20060102150405") + ".db"
+	tmpFile := "/tmp/test_options_" + time.Now().UTC().Format("20060102150405") + ".db"
 
 	config := Config{
 		Driver:     "sqlite",

@@ -22,7 +22,7 @@ var migrateCmd = &cobra.Command{
 var migrateUpCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Run all pending migrations",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		configFile, _ := cmd.Flags().GetString("config")
 
 		if err := core.Load(configFile); err != nil {
@@ -73,7 +73,7 @@ var migrateUpCmd = &cobra.Command{
 var migrateDownCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Roll back the last migration",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		configFile, _ := cmd.Flags().GetString("config")
 
 		if err := core.Load(configFile); err != nil {
@@ -124,7 +124,7 @@ var migrateDownCmd = &cobra.Command{
 var migrateStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show migration status",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		configFile, _ := cmd.Flags().GetString("config")
 
 		if err := core.Load(configFile); err != nil {

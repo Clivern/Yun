@@ -72,7 +72,9 @@ func (r *OptionRepository) Create(key, value string) error {
 func (r *OptionRepository) Get(key string) (*Option, error) {
 	option := &Option{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, created_at, updated_at FROM options WHERE key = ?",
+		`SELECT id, key, value, created_at, updated_at
+		FROM options
+		WHERE key = ?`,
 		key,
 	).Scan(
 		&option.ID,
@@ -103,9 +105,11 @@ func (r *OptionRepository) Get(key string) (*Option, error) {
 //	}
 func (r *OptionRepository) Update(key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE options SET value = ?, updated_at = ? WHERE key = ?",
+		`UPDATE options SET
+			value = ?, updated_at = ?
+		WHERE key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		key,
 	)
 	return err

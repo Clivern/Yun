@@ -84,7 +84,7 @@ func TestSessionManager_CreateSession(t *testing.T) {
 		assert.Equal(t, "192.168.1.1", *session.IPAddress)
 		assert.NotNil(t, session.UserAgent)
 		assert.Equal(t, "Mozilla/5.0", *session.UserAgent)
-		assert.True(t, session.ExpiresAt.After(time.Now()))
+		assert.True(t, session.ExpiresAt.After(time.Now().UTC()))
 	})
 
 	t.Run("Create session without optional fields", func(t *testing.T) {
@@ -218,7 +218,7 @@ func TestSessionManager_ValidateSession(t *testing.T) {
 		expiredSession := &db.Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 		}
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
@@ -441,7 +441,7 @@ func TestSessionManager_GetUserSessions(t *testing.T) {
 		expiredSession := &db.Session{
 			Token:     "expired",
 			UserID:    user.ID,
-			ExpiresAt: time.Now().Add(-1 * time.Hour),
+			ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 		}
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
@@ -479,7 +479,7 @@ func TestSessionManager_CleanupExpiredSessions(t *testing.T) {
 			expiredSession := &db.Session{
 				Token:     "expired-" + string(rune(i)),
 				UserID:    user.ID,
-				ExpiresAt: time.Now().Add(-1 * time.Hour),
+				ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
 			}
 			err = sessionRepo.Create(expiredSession)
 			assert.NoError(t, err)

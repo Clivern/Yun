@@ -71,7 +71,7 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 }
 
 // SetupStatusAction checks if the gateway is already installed
-func SetupStatusAction(w http.ResponseWriter, r *http.Request) {
+func SetupStatusAction(w http.ResponseWriter, _ *http.Request) {
 	setupModule := module.NewSetup(
 		db.NewOptionRepository(db.GetDB()),
 		db.NewUserRepository(db.GetDB()),

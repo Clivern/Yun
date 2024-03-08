@@ -33,13 +33,13 @@ app:
 
   # Database configs
   database:
-    # Database driver (mysql or sqlite)
+    # Database driver (postgres, postgresql, or sqlite)
     driver: ${YUN_DATABASE_DRIVER:-sqlite}
-    # MySQL specific configs
+    # PostgreSQL specific configs
     host: ${YUN_DATABASE_HOST:-localhost}
-    port: ${YUN_DATABASE_PORT:-3306}
-    username: ${YUN_DATABASE_USERNAME:-root}
-    password: ${YUN_DATABASE_PASSWORD:-root}
+    port: ${YUN_DATABASE_PORT:-5432}
+    username: ${YUN_DATABASE_USERNAME:-postgres}
+    password: ${YUN_DATABASE_PASSWORD:-postgres}
     name: ${YUN_DATABASE_NAME:-yun}
     # Connection pool settings
     max_open_conns: ${YUN_DATABASE_MAX_OPEN_CONNS:-25}

@@ -54,7 +54,7 @@ func Setup(Static embed.FS) http.Handler {
 	r.Use(middleware.SessionAuth())
 
 	// Routes
-	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/favicon.ico", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 	r.Get("/api/v1/public/_health", api.HealthAction)

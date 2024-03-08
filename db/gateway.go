@@ -57,10 +57,20 @@ func (r *GatewayRepository) GetByID(id int64) (*Gateway, error) {
 	gateway := &Gateway{}
 	err := r.db.QueryRow(
 		`SELECT id, name, slug, gateway_type, config, is_enabled, description, created_at, updated_at
-		FROM gateways WHERE id = ?`,
+		FROM gateways
+		WHERE id = ?`,
 		id,
-	).Scan(&gateway.ID, &gateway.Name, &gateway.Slug, &gateway.GatewayType, &gateway.Config,
-		&gateway.IsEnabled, &gateway.Description, &gateway.CreatedAt, &gateway.UpdatedAt)
+	).Scan(
+		&gateway.ID,
+		&gateway.Name,
+		&gateway.Slug,
+		&gateway.GatewayType,
+		&gateway.Config,
+		&gateway.IsEnabled,
+		&gateway.Description,
+		&gateway.CreatedAt,
+		&gateway.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -77,10 +87,20 @@ func (r *GatewayRepository) GetBySlug(slug string) (*Gateway, error) {
 	gateway := &Gateway{}
 	err := r.db.QueryRow(
 		`SELECT id, name, slug, gateway_type, config, is_enabled, description, created_at, updated_at
-		FROM gateways WHERE slug = ?`,
+		FROM gateways
+		WHERE slug = ?`,
 		slug,
-	).Scan(&gateway.ID, &gateway.Name, &gateway.Slug, &gateway.GatewayType, &gateway.Config,
-		&gateway.IsEnabled, &gateway.Description, &gateway.CreatedAt, &gateway.UpdatedAt)
+	).Scan(
+		&gateway.ID,
+		&gateway.Name,
+		&gateway.Slug,
+		&gateway.GatewayType,
+		&gateway.Config,
+		&gateway.IsEnabled,
+		&gateway.Description,
+		&gateway.CreatedAt,
+		&gateway.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -95,15 +115,17 @@ func (r *GatewayRepository) GetBySlug(slug string) (*Gateway, error) {
 // Update updates a gateway's information.
 func (r *GatewayRepository) Update(gateway *Gateway) error {
 	_, err := r.db.Exec(
-		`UPDATE gateways SET name = ?, slug = ?, gateway_type = ?, config = ?,
-		is_enabled = ?, description = ?, updated_at = ? WHERE id = ?`,
+		`UPDATE gateways SET
+			name = ?, slug = ?, gateway_type = ?, config = ?,
+			is_enabled = ?, description = ?, updated_at = ?
+		WHERE id = ?`,
 		gateway.Name,
 		gateway.Slug,
 		gateway.GatewayType,
 		gateway.Config,
 		gateway.IsEnabled,
 		gateway.Description,
-		time.Now(),
+		time.Now().UTC(),
 		gateway.ID,
 	)
 	return err
@@ -119,7 +141,9 @@ func (r *GatewayRepository) Delete(id int64) error {
 func (r *GatewayRepository) List(limit, offset int) ([]*Gateway, error) {
 	rows, err := r.db.Query(
 		`SELECT id, name, slug, gateway_type, config, is_enabled, description, created_at, updated_at
-		FROM gateways ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		FROM gateways
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		limit,
 		offset,
 	)
@@ -131,9 +155,17 @@ func (r *GatewayRepository) List(limit, offset int) ([]*Gateway, error) {
 	var gateways []*Gateway
 	for rows.Next() {
 		gateway := &Gateway{}
-		if err := rows.Scan(&gateway.ID, &gateway.Name, &gateway.Slug, &gateway.GatewayType,
-			&gateway.Config, &gateway.IsEnabled, &gateway.Description, &gateway.CreatedAt,
-			&gateway.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&gateway.ID,
+			&gateway.Name,
+			&gateway.Slug,
+			&gateway.GatewayType,
+			&gateway.Config,
+			&gateway.IsEnabled,
+			&gateway.Description,
+			&gateway.CreatedAt,
+			&gateway.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		gateways = append(gateways, gateway)
@@ -146,7 +178,10 @@ func (r *GatewayRepository) List(limit, offset int) ([]*Gateway, error) {
 func (r *GatewayRepository) ListByType(gatewayType string, limit, offset int) ([]*Gateway, error) {
 	rows, err := r.db.Query(
 		`SELECT id, name, slug, gateway_type, config, is_enabled, description, created_at, updated_at
-		FROM gateways WHERE gateway_type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		FROM gateways
+		WHERE gateway_type = ?
+		ORDER BY created_at DESC
+		LIMIT ? OFFSET ?`,
 		gatewayType,
 		limit,
 		offset,
@@ -159,9 +194,17 @@ func (r *GatewayRepository) ListByType(gatewayType string, limit, offset int) ([
 	var gateways []*Gateway
 	for rows.Next() {
 		gateway := &Gateway{}
-		if err := rows.Scan(&gateway.ID, &gateway.Name, &gateway.Slug, &gateway.GatewayType,
-			&gateway.Config, &gateway.IsEnabled, &gateway.Description, &gateway.CreatedAt,
-			&gateway.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&gateway.ID,
+			&gateway.Name,
+			&gateway.Slug,
+			&gateway.GatewayType,
+			&gateway.Config,
+			&gateway.IsEnabled,
+			&gateway.Description,
+			&gateway.CreatedAt,
+			&gateway.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		gateways = append(gateways, gateway)
@@ -212,10 +255,19 @@ func (r *GatewayMetaRepository) Create(gatewayID int64, key, value string) error
 func (r *GatewayMetaRepository) Get(gatewayID int64, key string) (*GatewayMeta, error) {
 	meta := &GatewayMeta{}
 	err := r.db.QueryRow(
-		"SELECT id, key, value, gateway_id, created_at, updated_at FROM gateways_meta WHERE gateway_id = ? AND key = ?",
+		`SELECT id, key, value, gateway_id, created_at, updated_at
+		FROM gateways_meta
+		WHERE gateway_id = ? AND key = ?`,
 		gatewayID,
 		key,
-	).Scan(&meta.ID, &meta.Key, &meta.Value, &meta.GatewayID, &meta.CreatedAt, &meta.UpdatedAt)
+	).Scan(
+		&meta.ID,
+		&meta.Key,
+		&meta.Value,
+		&meta.GatewayID,
+		&meta.CreatedAt,
+		&meta.UpdatedAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -230,9 +282,11 @@ func (r *GatewayMetaRepository) Get(gatewayID int64, key string) (*GatewayMeta, 
 // Update updates metadata for a gateway.
 func (r *GatewayMetaRepository) Update(gatewayID int64, key, value string) error {
 	_, err := r.db.Exec(
-		"UPDATE gateways_meta SET value = ?, updated_at = ? WHERE gateway_id = ? AND key = ?",
+		`UPDATE gateways_meta SET
+			value = ?, updated_at = ?
+		WHERE gateway_id = ? AND key = ?`,
 		value,
-		time.Now(),
+		time.Now().UTC(),
 		gatewayID,
 		key,
 	)
@@ -252,7 +306,10 @@ func (r *GatewayMetaRepository) Delete(gatewayID int64, key string) error {
 // ListByGateway retrieves all metadata for a gateway.
 func (r *GatewayMetaRepository) ListByGateway(gatewayID int64) ([]*GatewayMeta, error) {
 	rows, err := r.db.Query(
-		"SELECT id, key, value, gateway_id, created_at, updated_at FROM gateways_meta WHERE gateway_id = ? ORDER BY key",
+		`SELECT id, key, value, gateway_id, created_at, updated_at
+		FROM gateways_meta
+		WHERE gateway_id = ?
+		ORDER BY key`,
 		gatewayID,
 	)
 	if err != nil {
@@ -263,7 +320,14 @@ func (r *GatewayMetaRepository) ListByGateway(gatewayID int64) ([]*GatewayMeta, 
 	var metadata []*GatewayMeta
 	for rows.Next() {
 		meta := &GatewayMeta{}
-		if err := rows.Scan(&meta.ID, &meta.Key, &meta.Value, &meta.GatewayID, &meta.CreatedAt, &meta.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&meta.ID,
+			&meta.Key,
+			&meta.Value,
+			&meta.GatewayID,
+			&meta.CreatedAt,
+			&meta.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		metadata = append(metadata, meta)

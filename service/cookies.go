@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package service provides utility services and helper functions for the Yun application.
 package service
 
 import (
@@ -25,8 +26,8 @@ type CookieOptions struct {
 	// Secure indicates if the cookie should only be sent over HTTPS.
 	Secure bool
 
-	// HttpOnly makes the cookie inaccessible to JavaScript.
-	HttpOnly bool
+	// HTTPOnly makes the cookie inaccessible to JavaScript.
+	HTTPOnly bool
 
 	// SameSite controls the cookie's SameSite attribute.
 	// Options: SameSiteDefaultMode, SameSiteLaxMode, SameSiteStrictMode, SameSiteNoneMode.
@@ -43,7 +44,7 @@ type CookieOptions struct {
 func DefaultCookieOptions() *CookieOptions {
 	return &CookieOptions{
 		Path:     "/",
-		HttpOnly: true,
+		HTTPOnly: true,
 		Secure:   false, // Set to true in production with HTTPS
 		SameSite: http.SameSiteLaxMode,
 	}
@@ -60,7 +61,7 @@ func DefaultCookieOptions() *CookieOptions {
 func SecureCookieOptions() *CookieOptions {
 	return &CookieOptions{
 		Path:     "/",
-		HttpOnly: true,
+		HTTPOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}
@@ -85,13 +86,13 @@ func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions
 		Domain:   options.Domain,
 		MaxAge:   options.MaxAge,
 		Secure:   options.Secure,
-		HttpOnly: options.HttpOnly,
+		HttpOnly: options.HTTPOnly,
 		SameSite: options.SameSite,
 	}
 
 	// If MaxAge is set, also set Expires for older browsers
 	if options.MaxAge > 0 {
-		cookie.Expires = time.Now().Add(time.Duration(options.MaxAge) * time.Second)
+		cookie.Expires = time.Now().UTC().Add(time.Duration(options.MaxAge) * time.Second)
 	}
 
 	http.SetCookie(w, cookie)
@@ -164,7 +165,7 @@ func DeleteCookieWithOptions(w http.ResponseWriter, name string, options *Cookie
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0),
 		Secure:   options.Secure,
-		HttpOnly: options.HttpOnly,
+		HttpOnly: options.HTTPOnly,
 		SameSite: options.SameSite,
 	}
 
