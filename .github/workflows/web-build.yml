@@ -1,4 +1,4 @@
-name: Web UI Build
+name: Dashboard Build
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build Web UI
+    name: Build Dashboard
     runs-on: ubuntu-latest
 
     steps:
@@ -42,12 +42,10 @@ jobs:
       - name: Commit and push changes
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git add web/dist/
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: rebuild web assets [skip ci]"
-            git push
-          fi
+          git commit -m "chore: rebuild web assets [skip ci]" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
