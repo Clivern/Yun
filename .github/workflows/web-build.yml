@@ -1,0 +1,39 @@
+name: Web UI Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: Build Web UI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Build web assets
+        run: make web
+
+      - name: Check build artifacts
+        run: |
+          echo "Checking if build artifacts exist..."
+          ls -la web/dist/
+          if [ ! -f "web/dist/index.html" ]; then
+            echo "Error: index.html not found in build output"
+            exit 1
+          fi
+          echo "✓ Build successful - artifacts verified"
+

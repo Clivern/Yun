@@ -18,8 +18,6 @@ type Server struct {
 	Name            string
 	Slug            string
 	Description     string
-	IsPublic        bool
-	AllowedUserIDs  string
 	EnableTools     bool
 	EnableResources bool
 	EnablePrompts   bool
@@ -53,14 +51,12 @@ func NewServerRepository(db *sql.DB) *ServerRepository {
 func (r *ServerRepository) Create(server *Server) error {
 	result, err := r.db.Exec(
 		`INSERT INTO servers (
-			name, slug, description, is_public, allowed_user_ids,
+			name, slug, description,
 			enable_tools, enable_resources, enable_prompts, tags, created_by
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		server.Name,
 		server.Slug,
 		server.Description,
-		server.IsPublic,
-		server.AllowedUserIDs,
 		server.EnableTools,
 		server.EnableResources,
 		server.EnablePrompts,
@@ -80,7 +76,7 @@ func (r *ServerRepository) GetByID(id int64) (*Server, error) {
 	server := &Server{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			id, name, slug, description, enable_tools,
 			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
 		FROM servers
 		WHERE id = ?`,
@@ -90,8 +86,6 @@ func (r *ServerRepository) GetByID(id int64) (*Server, error) {
 		&server.Name,
 		&server.Slug,
 		&server.Description,
-		&server.IsPublic,
-		&server.AllowedUserIDs,
 		&server.EnableTools,
 		&server.EnableResources,
 		&server.EnablePrompts,
@@ -116,7 +110,7 @@ func (r *ServerRepository) GetBySlug(slug string) (*Server, error) {
 	server := &Server{}
 	err := r.db.QueryRow(
 		`SELECT
-			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			id, name, slug, description, enable_tools,
 			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
 		FROM servers
 		WHERE slug = ?`,
@@ -126,8 +120,6 @@ func (r *ServerRepository) GetBySlug(slug string) (*Server, error) {
 		&server.Name,
 		&server.Slug,
 		&server.Description,
-		&server.IsPublic,
-		&server.AllowedUserIDs,
 		&server.EnableTools,
 		&server.EnableResources,
 		&server.EnablePrompts,
@@ -151,15 +143,12 @@ func (r *ServerRepository) GetBySlug(slug string) (*Server, error) {
 func (r *ServerRepository) Update(server *Server) error {
 	_, err := r.db.Exec(
 		`UPDATE servers SET
-			name = ?, slug = ?, description = ?, is_public = ?,
-			allowed_user_ids = ?, enable_tools = ?, enable_resources = ?, enable_prompts = ?,
+			name = ?, slug = ?, description = ?, enable_tools = ?, enable_resources = ?, enable_prompts = ?,
 			tags = ?, updated_at = ?
 		WHERE id = ?`,
 		server.Name,
 		server.Slug,
 		server.Description,
-		server.IsPublic,
-		server.AllowedUserIDs,
 		server.EnableTools,
 		server.EnableResources,
 		server.EnablePrompts,
@@ -180,7 +169,7 @@ func (r *ServerRepository) Delete(id int64) error {
 func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			id, name, slug, description, enable_tools,
 			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
 		FROM servers
 		ORDER BY created_at DESC
@@ -201,8 +190,6 @@ func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
 			&server.Name,
 			&server.Slug,
 			&server.Description,
-			&server.IsPublic,
-			&server.AllowedUserIDs,
 			&server.EnableTools,
 			&server.EnableResources,
 			&server.EnablePrompts,
@@ -223,7 +210,7 @@ func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
 func (r *ServerRepository) ListByCreator(userID int64, limit, offset int) ([]*Server, error) {
 	rows, err := r.db.Query(
 		`SELECT
-			id, name, slug, description, is_public, allowed_user_ids, enable_tools,
+			id, name, slug, description, enable_tools,
 			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
 		FROM servers
 		WHERE created_by = ?
@@ -246,8 +233,6 @@ func (r *ServerRepository) ListByCreator(userID int64, limit, offset int) ([]*Se
 			&server.Name,
 			&server.Slug,
 			&server.Description,
-			&server.IsPublic,
-			&server.AllowedUserIDs,
 			&server.EnableTools,
 			&server.EnableResources,
 			&server.EnablePrompts,
