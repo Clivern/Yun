@@ -1,12 +1,14 @@
 # This is an example .goreleaser.yml file with some sensible defaults.
 # Make sure to check the documentation at https://goreleaser.com
+version: 2
 before:
   hooks:
     - "go mod download"
     - "go mod tidy"
     - "go generate ./..."
 builds:
-  - env:
+  - id: mut
+    env:
       - CGO_ENABLED=0
     goarch:
       - amd64
@@ -16,7 +18,8 @@ builds:
       - darwin
 
 archives:
-  - format: tar.gz
+  - formats:
+      - tar.gz
     # this name template makes the OS and Arch compatible with the results of uname.
     name_template: >-
       {{ .ProjectName }}_
@@ -28,7 +31,8 @@ archives:
     # use zip for windows archives
     format_overrides:
     - goos: windows
-      format: zip
+      formats:
+        - zip
     files:
       - LICENSE
       - README.md
@@ -37,7 +41,6 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
