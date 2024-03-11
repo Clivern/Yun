@@ -38,4 +38,3 @@ func Health(baseURL string) (*HealthResponse, error) {
 
 	return client.Health()
 }
-

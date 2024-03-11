@@ -80,4 +80,3 @@ func TestIntegrationReadyEndpoint(t *testing.T) {
 		db.CloseDB()
 	})
 }
-

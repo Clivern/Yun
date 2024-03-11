@@ -103,4 +103,3 @@ func (c *Client) parseJSONResponse(resp *http.Response, target interface{}) erro
 
 	return nil
 }
-

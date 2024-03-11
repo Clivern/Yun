@@ -38,4 +38,3 @@ func Ready(baseURL string) (*ReadyResponse, error) {
 
 	return client.Ready()
 }
-

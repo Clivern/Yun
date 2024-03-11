@@ -41,4 +41,3 @@ func TestUnitNewClient(t *testing.T) {
 		})
 	}
 }
-

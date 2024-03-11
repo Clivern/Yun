@@ -85,4 +85,3 @@ func TestUnitClient_Ready(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.Equal(t, "ok", resp.Status)
 }
-
