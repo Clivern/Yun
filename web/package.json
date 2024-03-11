@@ -1,7 +1,7 @@
 {
-  "name": "yun-dashboard",
+  "name": "mut-dashboard",
   "version": "0.4.0",
-  "description": "Yun MCP Gateway Dashboard",
+  "description": "Mut MCP Gateway Dashboard",
   "type": "module",
   "private": true,
   "scripts": {
@@ -17,7 +17,7 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.0",
+    "@vitejs/plugin-vue": "^5.1.4",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.0.0",
     "eslint-plugin-vue": "^10.0.0",

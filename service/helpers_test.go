@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWriteJSON(t *testing.T) {
+func TestUnitWriteJSON(t *testing.T) {
 	t.Run("WriteJSON with map data and 200 status", func(t *testing.T) {
 		// Arrange
 		w := httptest.NewRecorder()

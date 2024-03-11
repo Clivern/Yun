@@ -7,9 +7,9 @@ package api
 import (
 	"net/http"
 
-	"github.com/clivern/yun/db"
-	"github.com/clivern/yun/module"
-	"github.com/clivern/yun/service"
+	"github.com/clivern/mut/db"
+	"github.com/clivern/mut/module"
+	"github.com/clivern/mut/service"
 
 	"github.com/rs/zerolog/log"
 )
@@ -19,7 +19,7 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 	log.Debug().Msg("Logout endpoint called")
 
 	// Get session token from cookie
-	sessionToken := service.GetCookie(r, "_yun_session")
+	sessionToken := service.GetCookie(r, "_mut_session")
 	if sessionToken == "" {
 		service.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
 			"errorMessage": "Not authenticated",
@@ -38,7 +38,7 @@ func LogoutAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clear the session cookie
-	service.DeleteCookie(w, "_yun_session")
+	service.DeleteCookie(w, "_mut_session")
 
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"successMessage": "Logout successful",

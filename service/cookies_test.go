@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultCookieOptions(t *testing.T) {
+func TestUnitDefaultCookieOptions(t *testing.T) {
 	opts := DefaultCookieOptions()
 
 	assert.Equal(t, "/", opts.Path)
@@ -22,7 +22,7 @@ func TestDefaultCookieOptions(t *testing.T) {
 	assert.Equal(t, http.SameSiteLaxMode, opts.SameSite)
 }
 
-func TestSecureCookieOptions(t *testing.T) {
+func TestUnitSecureCookieOptions(t *testing.T) {
 	opts := SecureCookieOptions()
 
 	assert.Equal(t, "/", opts.Path)
@@ -31,7 +31,7 @@ func TestSecureCookieOptions(t *testing.T) {
 	assert.Equal(t, http.SameSiteStrictMode, opts.SameSite)
 }
 
-func TestSetCookie(t *testing.T) {
+func TestUnitSetCookie(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	opts := DefaultCookieOptions()
@@ -50,7 +50,7 @@ func TestSetCookie(t *testing.T) {
 	assert.True(t, cookie.HttpOnly)
 }
 
-func TestSetCookieWithNilOptions(t *testing.T) {
+func TestUnitSetCookieWithNilOptions(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	SetCookie(w, "test_cookie", "test_value", nil)
@@ -65,7 +65,7 @@ func TestSetCookieWithNilOptions(t *testing.T) {
 	assert.True(t, cookie.HttpOnly)
 }
 
-func TestSetCookieWithExpires(t *testing.T) {
+func TestUnitSetCookieWithExpires(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	opts := DefaultCookieOptions()
@@ -90,7 +90,7 @@ func TestSetCookieWithExpires(t *testing.T) {
 	assert.LessOrEqual(t, timeDiff, 5*time.Second)
 }
 
-func TestSetSecureCookie(t *testing.T) {
+func TestUnitSetSecureCookie(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	opts := SecureCookieOptions()
@@ -106,7 +106,7 @@ func TestSetSecureCookie(t *testing.T) {
 	assert.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
 }
 
-func TestGetCookie(t *testing.T) {
+func TestUnitGetCookie(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  "test_cookie",
@@ -117,14 +117,14 @@ func TestGetCookie(t *testing.T) {
 	assert.Equal(t, "test_value", value)
 }
 
-func TestGetCookieNotFound(t *testing.T) {
+func TestUnitGetCookieNotFound(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 
 	value := GetCookie(req, "nonexistent_cookie")
 	assert.Empty(t, value)
 }
 
-func TestHasCookie(t *testing.T) {
+func TestUnitHasCookie(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  "test_cookie",
@@ -135,7 +135,7 @@ func TestHasCookie(t *testing.T) {
 	assert.False(t, HasCookie(req, "nonexistent_cookie"))
 }
 
-func TestDeleteCookie(t *testing.T) {
+func TestUnitDeleteCookie(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	DeleteCookie(w, "test_cookie")
@@ -149,7 +149,7 @@ func TestDeleteCookie(t *testing.T) {
 	assert.Empty(t, cookie.Value)
 }
 
-func TestDeleteCookieWithOptions(t *testing.T) {
+func TestUnitDeleteCookieWithOptions(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	opts := &CookieOptions{
@@ -173,7 +173,7 @@ func TestDeleteCookieWithOptions(t *testing.T) {
 	assert.True(t, cookie.Expires.Equal(time.Unix(0, 0)))
 }
 
-func TestDeleteCookieWithNilOptions(t *testing.T) {
+func TestUnitDeleteCookieWithNilOptions(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	DeleteCookieWithOptions(w, "test_cookie", nil)
@@ -186,7 +186,7 @@ func TestDeleteCookieWithNilOptions(t *testing.T) {
 	assert.Equal(t, "/", cookie.Path)
 }
 
-func TestGetAllCookies(t *testing.T) {
+func TestUnitGetAllCookies(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.AddCookie(&http.Cookie{Name: "cookie1", Value: "value1"})
 	req.AddCookie(&http.Cookie{Name: "cookie2", Value: "value2"})
@@ -207,7 +207,7 @@ func TestGetAllCookies(t *testing.T) {
 	assert.Equal(t, "value3", cookieMap["cookie3"])
 }
 
-func TestGetAllCookiesEmpty(t *testing.T) {
+func TestUnitGetAllCookiesEmpty(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 
 	cookies := GetAllCookies(req)
@@ -215,7 +215,7 @@ func TestGetAllCookiesEmpty(t *testing.T) {
 	assert.Empty(t, cookies)
 }
 
-func TestCookieOptionsCustomization(t *testing.T) {
+func TestUnitCookieOptionsCustomization(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	opts := &CookieOptions{
@@ -240,7 +240,7 @@ func TestCookieOptionsCustomization(t *testing.T) {
 	assert.Equal(t, http.SameSiteNoneMode, cookie.SameSite)
 }
 
-func TestSessionCookieScenario(t *testing.T) {
+func TestUnitSessionCookieScenario(t *testing.T) {
 	// Simulate a typical session cookie workflow
 	w := httptest.NewRecorder()
 

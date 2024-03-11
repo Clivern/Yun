@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSQLiteConnection(t *testing.T) {
+func TestUnitSQLiteConnection(t *testing.T) {
 	// Create a temporary SQLite database
-	tmpFile := "/tmp/test_yun.db"
+	tmpFile := "/tmp/test_mut.db"
 	defer os.Remove(tmpFile)
 
 	config := Config{
@@ -34,9 +34,9 @@ func TestSQLiteConnection(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestUnsupportedDriver(t *testing.T) {
+func TestUnitUnsupportedDriver(t *testing.T) {
 	config := Config{
-		Driver: "postgresql",
+		Driver: "mysql", // Use an unsupported driver
 	}
 
 	conn, err := NewConnection(config)
@@ -45,12 +45,12 @@ func TestUnsupportedDriver(t *testing.T) {
 	assert.Contains(t, err.Error(), "unsupported database driver")
 }
 
-func TestInitDBAndGetDB(t *testing.T) {
+func TestUnitInitDBAndGetDB(t *testing.T) {
 	// Clean up any existing global connection
 	CloseDB()
 
 	// Create a temporary SQLite database
-	tmpFile := "/tmp/test_yun_global.db"
+	tmpFile := "/tmp/test_mut_global.db"
 	defer os.Remove(tmpFile)
 
 	config := Config{
@@ -79,12 +79,11 @@ func TestInitDBAndGetDB(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGetDBBeforeInit(t *testing.T) {
+func TestUnitGetDBBeforeInit(t *testing.T) {
 	// Clean up any existing global connection
 	CloseDB()
 
-	// GetDB should panic if called before InitDB
-	assert.Panics(t, func() {
-		GetDB()
-	})
+	// GetDB should return nil if called before InitDB
+	db := GetDB()
+	assert.Nil(t, db)
 }

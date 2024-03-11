@@ -7,14 +7,14 @@ package cli
 import (
 	"fmt"
 
-	"github.com/clivern/yun/core"
+	"github.com/clivern/mut/core"
 
 	"github.com/spf13/cobra"
 )
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "Start the yun backend server",
+	Short: "Start the mut backend server",
 	Run: func(_ *cobra.Command, _ []string) {
 		// Load configuration
 		if err := core.Load(config); err != nil {

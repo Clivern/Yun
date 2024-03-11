@@ -2,14 +2,14 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-// Package module provides business logic modules for the Yun application.
+// Package module provides business logic modules for the Mut application.
 package module
 
 import (
 	"errors"
 
-	"github.com/clivern/yun/db"
-	"github.com/clivern/yun/service"
+	"github.com/clivern/mut/db"
+	"github.com/clivern/mut/service"
 )
 
 // Auth is a module that handles authentication.

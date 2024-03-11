@@ -43,7 +43,7 @@ func NewOptionRepository(db *sql.DB) *OptionRepository {
 //
 // Example:
 //
-//	err := repo.Create("app_name", "Yun")
+//	err := repo.Create("app_name", "Mut")
 //	if err != nil {
 //		log.Fatal(err)
 //	}
@@ -99,7 +99,7 @@ func (r *OptionRepository) Get(key string) (*Option, error) {
 //
 // Example:
 //
-//	err := repo.Update("app_name", "Yun v2")
+//	err := repo.Update("app_name", "Mut v2")
 //	if err != nil {
 //		log.Fatal(err)
 //	}

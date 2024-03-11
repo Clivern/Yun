@@ -24,4 +24,5 @@ config.test.yml
 coverage.html
 
 # Binary
-yun
+mut
+mcp/*

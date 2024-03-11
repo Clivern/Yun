@@ -14,11 +14,11 @@ import (
 var config string
 
 var rootCmd = &cobra.Command{
-	Use: "yun",
-	Short: `🐺 A Microservice For LGTM Stack Testing.
+	Use: "mut",
+	Short: `🐗 A Fast, Secure MCP Gateway, Set up in Minutes.
 
 If you have any suggestions, bug reports, or annoyances please report
-them to our issue tracker at <https://github.com/clivern/yun/issues>`,
+them to our issue tracker at <https://github.com/clivern/mut/issues>`,
 }
 
 // Execute runs cmd tool

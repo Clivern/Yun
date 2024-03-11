@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/clivern/yun/middleware"
-	"github.com/clivern/yun/service"
+	"github.com/clivern/mut/middleware"
+	"github.com/clivern/mut/service"
 
 	"github.com/rs/zerolog/log"
 )

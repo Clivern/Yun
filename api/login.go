@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/clivern/yun/db"
-	"github.com/clivern/yun/module"
-	"github.com/clivern/yun/service"
+	"github.com/clivern/mut/db"
+	"github.com/clivern/mut/module"
+	"github.com/clivern/mut/service"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -73,7 +73,7 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 		cookieOptions = service.DefaultCookieOptions()
 	}
 	cookieOptions.MaxAge = int(duration.Seconds())
-	service.SetCookie(w, "_yun_session", session.Token, cookieOptions)
+	service.SetCookie(w, "_mut_session", session.Token, cookieOptions)
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"successMessage": "Login successful",
 		"user": map[string]interface{}{

@@ -5,9 +5,9 @@
 package cli
 
 import (
-	"github.com/clivern/yun/core"
-	"github.com/clivern/yun/db"
-	"github.com/clivern/yun/migration"
+	"github.com/clivern/mut/core"
+	"github.com/clivern/mut/db"
+	"github.com/clivern/mut/migration"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

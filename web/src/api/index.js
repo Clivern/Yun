@@ -6,7 +6,7 @@ const api = axios.create({
 })
 
 // Request interceptor
-// Note: Authentication is handled via HTTP-only cookies (_yun_session)
+// Note: Authentication is handled via HTTP-only cookies (_mut_session)
 // This interceptor is kept for future extensibility (e.g., API keys, CSRF tokens)
 api.interceptors.request.use(
   (config) => {

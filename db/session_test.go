@@ -52,7 +52,7 @@ func setupSessionTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-func TestSessionRepository_Create(t *testing.T) {
+func TestUnitSessionRepository_Create(t *testing.T) {
 	t.Run("Create session successfully", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -120,7 +120,7 @@ func TestSessionRepository_Create(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_GetByToken(t *testing.T) {
+func TestUnitSessionRepository_GetByToken(t *testing.T) {
 	t.Run("Get existing session by token", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -172,7 +172,7 @@ func TestSessionRepository_GetByToken(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_GetByID(t *testing.T) {
+func TestUnitSessionRepository_GetByID(t *testing.T) {
 	t.Run("Get existing session by ID", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -224,7 +224,7 @@ func TestSessionRepository_GetByID(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_GetByUserID(t *testing.T) {
+func TestUnitSessionRepository_GetByUserID(t *testing.T) {
 	t.Run("Get all sessions for a user", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -287,7 +287,7 @@ func TestSessionRepository_GetByUserID(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_Delete(t *testing.T) {
+func TestUnitSessionRepository_Delete(t *testing.T) {
 	t.Run("Delete existing session", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -325,7 +325,7 @@ func TestSessionRepository_Delete(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_DeleteByToken(t *testing.T) {
+func TestUnitSessionRepository_DeleteByToken(t *testing.T) {
 	t.Run("Delete session by token", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -363,7 +363,7 @@ func TestSessionRepository_DeleteByToken(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_DeleteByUserID(t *testing.T) {
+func TestUnitSessionRepository_DeleteByUserID(t *testing.T) {
 	t.Run("Delete all sessions for a user", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -404,7 +404,7 @@ func TestSessionRepository_DeleteByUserID(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_DeleteExpired(t *testing.T) {
+func TestUnitSessionRepository_DeleteExpired(t *testing.T) {
 	t.Run("Delete expired sessions", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -459,7 +459,7 @@ func TestSessionRepository_DeleteExpired(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_IsValid(t *testing.T) {
+func TestUnitSessionRepository_IsValid(t *testing.T) {
 	t.Run("Valid non-expired session", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -542,7 +542,7 @@ func TestSessionRepository_IsValid(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_UpdateExpiration(t *testing.T) {
+func TestUnitSessionRepository_UpdateExpiration(t *testing.T) {
 	t.Run("Update session expiration", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -584,7 +584,7 @@ func TestSessionRepository_UpdateExpiration(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_Count(t *testing.T) {
+func TestUnitSessionRepository_Count(t *testing.T) {
 	t.Run("Count active sessions", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -631,7 +631,7 @@ func TestSessionRepository_Count(t *testing.T) {
 	})
 }
 
-func TestSessionRepository_CountByUserID(t *testing.T) {
+func TestUnitSessionRepository_CountByUserID(t *testing.T) {
 	t.Run("Count active sessions for user", func(t *testing.T) {
 		// Arrange
 		db := setupSessionTestDB(t)
@@ -644,6 +644,7 @@ func TestSessionRepository_CountByUserID(t *testing.T) {
 			Email:    "user1@example.com",
 			Password: "hashedpassword",
 			Role:     "user",
+			APIKey:   "api-key-user1",
 			IsActive: true,
 		}
 		err := userRepo.Create(user1)
@@ -653,6 +654,7 @@ func TestSessionRepository_CountByUserID(t *testing.T) {
 			Email:    "user2@example.com",
 			Password: "hashedpassword",
 			Role:     "user",
+			APIKey:   "api-key-user2",
 			IsActive: true,
 		}
 		err = userRepo.Create(user2)

@@ -6,7 +6,7 @@
         <div class="flex justify-between h-14">
           <div class="flex items-center">
             <div class="flex-shrink-0 flex items-center">
-              <img src="/logo.png" alt="Yun Logo" class="h-8 w-auto">
+              <img src="/logo.png" alt="Mut Logo" class="h-8 w-auto">
             </div>
             <div class="hidden md:ml-8 md:flex md:space-x-1">
               <router-link
@@ -106,7 +106,7 @@
                 v-model="settings.appUrl"
                 type="url"
                 class="input-field max-w-md"
-                placeholder="https://yun.com"
+                placeholder="https://mut.com"
               >
               <p class="text-xs text-notion-textLight mt-1.5">The public URL where this application is accessible</p>
             </div>
@@ -384,7 +384,7 @@ const errorMessage = ref(null)
 
 const settings = reactive({
   // General
-  appName: 'Yun Gateway',
+  appName: 'Mut Gateway',
   appUrl: 'https://gateway.example.com',
   description: '',
 
@@ -443,7 +443,7 @@ const handleSave = async () => {
 const handleReset = () => {
   if (confirm('Are you sure you want to reset all settings to their default values?')) {
     // Reset to default values
-    settings.appName = 'Yun Gateway'
+    settings.appName = 'Mut Gateway'
     settings.appUrl = 'https://gateway.example.com'
     settings.description = ''
     settings.sessionTimeout = 30

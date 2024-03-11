@@ -2,7 +2,7 @@
  * LocalStorage utility functions for managing persisted data
  */
 
-const USER_STORAGE_KEY = 'yun_user'
+const USER_STORAGE_KEY = 'mut_user'
 
 /**
  * Load user data from localStorage

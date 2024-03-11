@@ -4,9 +4,9 @@
       <!-- Logo and Header -->
       <div class="text-center mb-10">
         <div class="flex justify-center mb-6">
-          <img src="/logo.png" alt="Yun Logo" class="h-24 w-auto">
+          <img src="/logo.png" alt="Mut Logo" class="h-24 w-auto">
         </div>
-        <h1 class="text-2xl font-semibold text-notion-text mb-2">Yun Setup</h1>
+        <h1 class="text-2xl font-semibold text-notion-text mb-2">Mut Setup</h1>
         <p class="text-sm text-notion-textLight">Configure your gateway and create an admin account</p>
       </div>
 
@@ -60,7 +60,7 @@
               type="email"
               required
               class="input-field"
-              placeholder="gateway@yun.com"
+              placeholder="gateway@mut.com"
               :disabled="loading"
             >
             <p class="text-xs text-notion-textLight mt-1.5">The contact email for this gateway</p>
@@ -87,7 +87,7 @@
               type="email"
               required
               class="input-field"
-              placeholder="admin@yun.com"
+              placeholder="admin@mut.com"
               :disabled="loading"
             >
             <p class="text-xs text-notion-textLight mt-1.5">The email address for the admin account</p>
@@ -164,7 +164,7 @@
 
       <!-- Footer -->
       <p class="text-center text-xs text-notion-textLight mt-8">
-        Copyright © 2025 Yun. All rights reserved.
+        Copyright © 2025 Mut. All rights reserved.
       </p>
     </div>
   </div>

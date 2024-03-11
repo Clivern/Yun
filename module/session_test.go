@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clivern/yun/db"
+	"github.com/clivern/mut/db"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,7 +53,7 @@ func setupSessionModuleTestDB(t *testing.T) *sql.DB {
 	return testDB
 }
 
-func TestSessionManager_CreateSession(t *testing.T) {
+func TestUnitSessionManager_CreateSession(t *testing.T) {
 	t.Run("Create session successfully", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -163,7 +163,7 @@ func TestSessionManager_CreateSession(t *testing.T) {
 	})
 }
 
-func TestSessionManager_ValidateSession(t *testing.T) {
+func TestUnitSessionManager_ValidateSession(t *testing.T) {
 	t.Run("Validate valid session", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -289,7 +289,7 @@ func TestSessionManager_ValidateSession(t *testing.T) {
 	})
 }
 
-func TestSessionManager_RefreshSession(t *testing.T) {
+func TestUnitSessionManager_RefreshSession(t *testing.T) {
 	t.Run("Refresh session successfully", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -341,7 +341,7 @@ func TestSessionManager_RefreshSession(t *testing.T) {
 	})
 }
 
-func TestSessionManager_RevokeSession(t *testing.T) {
+func TestUnitSessionManager_RevokeSession(t *testing.T) {
 	t.Run("Revoke session successfully", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -375,7 +375,7 @@ func TestSessionManager_RevokeSession(t *testing.T) {
 	})
 }
 
-func TestSessionManager_RevokeUserSessions(t *testing.T) {
+func TestUnitSessionManager_RevokeUserSessions(t *testing.T) {
 	t.Run("Revoke all user sessions", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -412,7 +412,7 @@ func TestSessionManager_RevokeUserSessions(t *testing.T) {
 	})
 }
 
-func TestSessionManager_GetUserSessions(t *testing.T) {
+func TestUnitSessionManager_GetUserSessions(t *testing.T) {
 	t.Run("Get active user sessions", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -455,7 +455,7 @@ func TestSessionManager_GetUserSessions(t *testing.T) {
 	})
 }
 
-func TestSessionManager_CleanupExpiredSessions(t *testing.T) {
+func TestUnitSessionManager_CleanupExpiredSessions(t *testing.T) {
 	t.Run("Cleanup expired sessions", func(t *testing.T) {
 		// Arrange
 		testDB := setupSessionModuleTestDB(t)
@@ -502,7 +502,7 @@ func TestSessionManager_CleanupExpiredSessions(t *testing.T) {
 	})
 }
 
-func TestGenerateSecureToken(t *testing.T) {
+func TestUnitGenerateSecureToken(t *testing.T) {
 	t.Run("Generate secure token", func(t *testing.T) {
 		// Act
 		token1, err1 := generateSecureToken(32)

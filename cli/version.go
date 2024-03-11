@@ -30,7 +30,7 @@ var versionCmd = &cobra.Command{
 	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println(
 			fmt.Sprintf(
-				`Current Yun Version %v Commit %v, Built @%v By %v.`,
+				`Current Mut Version %v Commit %v, Built @%v By %v.`,
 				Version,
 				Commit,
 				Date,

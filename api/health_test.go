@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestUnitHealthEndpoint tests the health check endpoint
-func TestUnitHealthEndpoint(t *testing.T) {
+// TestIntegrationHealthEndpoint tests the health check endpoint
+func TestIntegrationHealthEndpoint(t *testing.T) {
 	t.Run("HealthAction should return OK status", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/_health", nil)
 		w := httptest.NewRecorder()

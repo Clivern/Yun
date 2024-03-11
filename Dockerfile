@@ -1,6 +1,6 @@
 FROM golang:1.20.4
 
-ARG YUN_VERSION=0.3.0
+ARG MUT_VERSION=0.3.0
 
 RUN mkdir -p /app/configs
 RUN mkdir -p /app/var/logs
@@ -8,7 +8,7 @@ RUN apt-get update
 
 WORKDIR /app
 
-RUN curl -sL https://github.com/Clivern/Yun/releases/download/v${YUN_VERSION}/yun_Linux_x86_64.tar.gz | tar xz
+RUN curl -sL https://github.com/Clivern/Mut/releases/download/v${MUT_VERSION}/mut_Linux_x86_64.tar.gz | tar xz
 RUN rm LICENSE
 RUN rm README.md
 
@@ -19,6 +19,6 @@ EXPOSE 8080
 VOLUME /app/configs
 VOLUME /app/var
 
-RUN ./yun version
+RUN ./mut version
 
-CMD ["./yun", "server", "-c", "/app/configs/config.dist.yml"]
+CMD ["./mut", "server", "-c", "/app/configs/config.dist.yml"]

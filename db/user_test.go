@@ -64,7 +64,7 @@ func setupUserTestDB(t *testing.T) (*Connection, func()) {
 	return conn, cleanup
 }
 
-func TestUserRepository_Create(t *testing.T) {
+func TestUnitUserRepository_Create(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -167,7 +167,7 @@ func TestUserRepository_Create(t *testing.T) {
 	})
 }
 
-func TestUserRepository_GetByID(t *testing.T) {
+func TestUnitUserRepository_GetByID(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -203,7 +203,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 	})
 }
 
-func TestUserRepository_GetByEmail(t *testing.T) {
+func TestUnitUserRepository_GetByEmail(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -251,7 +251,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	})
 }
 
-func TestUserRepository_GetByAPIKey(t *testing.T) {
+func TestUnitUserRepository_GetByAPIKey(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -301,7 +301,7 @@ func TestUserRepository_GetByAPIKey(t *testing.T) {
 	})
 }
 
-func TestUserRepository_Update(t *testing.T) {
+func TestUnitUserRepository_Update(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -403,7 +403,7 @@ func TestUserRepository_Update(t *testing.T) {
 	})
 }
 
-func TestUserRepository_UpdateLastLogin(t *testing.T) {
+func TestUnitUserRepository_UpdateLastLogin(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -468,7 +468,7 @@ func TestUserRepository_UpdateLastLogin(t *testing.T) {
 	})
 }
 
-func TestUserRepository_Delete(t *testing.T) {
+func TestUnitUserRepository_Delete(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -533,7 +533,7 @@ func TestUserRepository_Delete(t *testing.T) {
 	})
 }
 
-func TestUserRepository_List(t *testing.T) {
+func TestUnitUserRepository_List(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -616,7 +616,7 @@ func TestUserRepository_List(t *testing.T) {
 	})
 }
 
-func TestUserRepository_Count(t *testing.T) {
+func TestUnitUserRepository_Count(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -674,7 +674,7 @@ func TestUserRepository_Count(t *testing.T) {
 	})
 }
 
-func TestUserMetaRepository_Create(t *testing.T) {
+func TestUnitUserMetaRepository_Create(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -754,7 +754,7 @@ func TestUserMetaRepository_Create(t *testing.T) {
 	})
 }
 
-func TestUserMetaRepository_Get(t *testing.T) {
+func TestUnitUserMetaRepository_Get(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -806,7 +806,7 @@ func TestUserMetaRepository_Get(t *testing.T) {
 	})
 }
 
-func TestUserMetaRepository_Update(t *testing.T) {
+func TestUnitUserMetaRepository_Update(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -884,7 +884,7 @@ func TestUserMetaRepository_Update(t *testing.T) {
 	})
 }
 
-func TestUserMetaRepository_Delete(t *testing.T) {
+func TestUnitUserMetaRepository_Delete(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -934,7 +934,7 @@ func TestUserMetaRepository_Delete(t *testing.T) {
 	})
 }
 
-func TestUserMetaRepository_ListByUser(t *testing.T) {
+func TestUnitUserMetaRepository_ListByUser(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 
@@ -1034,7 +1034,7 @@ func TestUserMetaRepository_ListByUser(t *testing.T) {
 	})
 }
 
-func TestUserMetaRepository_Upsert(t *testing.T) {
+func TestUnitUserMetaRepository_Upsert(t *testing.T) {
 	conn, cleanup := setupUserTestDB(t)
 	defer cleanup()
 

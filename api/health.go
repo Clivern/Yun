@@ -7,7 +7,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/clivern/yun/service"
+	"github.com/clivern/mut/service"
 
 	"github.com/rs/zerolog/log"
 )

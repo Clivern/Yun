@@ -1,4 +1,4 @@
-module github.com/clivern/yun
+module github.com/clivern/mut
 
 go 1.24.9
 

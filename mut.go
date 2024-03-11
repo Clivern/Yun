@@ -2,13 +2,13 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-// Package main is the entry point for the Yun application.
+// Package main is the entry point for the Mut application.
 package main
 
 import (
 	"embed"
 
-	"github.com/clivern/yun/cli"
+	"github.com/clivern/mut/cli"
 )
 
 var (

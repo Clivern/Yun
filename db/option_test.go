@@ -45,14 +45,14 @@ func setupTestDB(t *testing.T) (*Connection, func()) {
 	return conn, cleanup
 }
 
-func TestOptionRepository_Create(t *testing.T) {
+func TestUnitOptionRepository_Create(t *testing.T) {
 	conn, cleanup := setupTestDB(t)
 	defer cleanup()
 
 	repo := NewOptionRepository(conn.DB)
 
 	t.Run("Create new option successfully", func(t *testing.T) {
-		err := repo.Create("app_name", "Yun")
+		err := repo.Create("app_name", "Mut")
 		assert.NoError(t, err)
 
 		// Verify it was created
@@ -60,7 +60,7 @@ func TestOptionRepository_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, opt)
 		assert.Equal(t, "app_name", opt.Key)
-		assert.Equal(t, "Yun", opt.Value)
+		assert.Equal(t, "Mut", opt.Value)
 	})
 
 	t.Run("Create option with empty value", func(t *testing.T) {
@@ -92,7 +92,7 @@ func TestOptionRepository_Create(t *testing.T) {
 	})
 }
 
-func TestOptionRepository_Get(t *testing.T) {
+func TestUnitOptionRepository_Get(t *testing.T) {
 	conn, cleanup := setupTestDB(t)
 	defer cleanup()
 
@@ -132,7 +132,7 @@ func TestOptionRepository_Get(t *testing.T) {
 	})
 }
 
-func TestOptionRepository_Update(t *testing.T) {
+func TestUnitOptionRepository_Update(t *testing.T) {
 	conn, cleanup := setupTestDB(t)
 	defer cleanup()
 
@@ -200,7 +200,7 @@ func TestOptionRepository_Update(t *testing.T) {
 	})
 }
 
-func TestOptionRepository_Delete(t *testing.T) {
+func TestUnitOptionRepository_Delete(t *testing.T) {
 	conn, cleanup := setupTestDB(t)
 	defer cleanup()
 
@@ -254,7 +254,7 @@ func TestOptionRepository_Delete(t *testing.T) {
 	})
 }
 
-func TestOptionRepository_List(t *testing.T) {
+func TestUnitOptionRepository_List(t *testing.T) {
 	conn, cleanup := setupTestDB(t)
 	defer cleanup()
 
@@ -269,7 +269,7 @@ func TestOptionRepository_List(t *testing.T) {
 	t.Run("List multiple options", func(t *testing.T) {
 		// Create test data
 		testData := map[string]string{
-			"app_name":    "Yun",
+			"app_name":    "Mut",
 			"version":     "1.0.0",
 			"environment": "development",
 			"debug":       "true",

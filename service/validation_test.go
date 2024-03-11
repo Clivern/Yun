@@ -18,7 +18,7 @@ type TestStruct struct {
 	Age      int    `json:"age" validate:"omitempty,gte=0,lte=150"`
 }
 
-func TestValidateStruct(t *testing.T) {
+func TestUnitValidateStruct(t *testing.T) {
 	t.Run("Valid struct", func(t *testing.T) {
 		data := TestStruct{
 			Email:    "test@example.com",
@@ -131,7 +131,7 @@ func TestValidateStruct(t *testing.T) {
 	})
 }
 
-func TestFormatValidationErrors(t *testing.T) {
+func TestUnitFormatValidationErrors(t *testing.T) {
 	data := TestStruct{
 		Email: "invalid",
 		URL:   "invalid",

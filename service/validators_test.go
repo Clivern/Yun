@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidateStrongPassword(t *testing.T) {
+func TestUnitValidateStrongPassword(t *testing.T) {
 	// Test struct for password validation
 	type PasswordTest struct {
 		Password string `validate:"strong_password"`

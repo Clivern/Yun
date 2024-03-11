@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-// Package middleware provides HTTP middleware functions for the Yun application.
+// Package middleware provides HTTP middleware functions for the Mut application.
 package middleware
 
 import (
@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/clivern/yun/db"
-	"github.com/clivern/yun/module"
-	"github.com/clivern/yun/service"
+	"github.com/clivern/mut/db"
+	"github.com/clivern/mut/module"
+	"github.com/clivern/mut/service"
 
 	"github.com/rs/zerolog/log"
 )
@@ -54,7 +54,7 @@ func SessionAuth() func(http.Handler) http.Handler {
 			}
 
 			// Get session token from cookie
-			sessionToken := service.GetCookie(r, "_yun_session")
+			sessionToken := service.GetCookie(r, "_mut_session")
 			if sessionToken == "" {
 				log.Info().Str("path", r.URL.Path).Msg("No session cookie found")
 				service.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{

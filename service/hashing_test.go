@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHashPassword(t *testing.T) {
+func TestUnitHashPassword(t *testing.T) {
 	t.Run("HashPassword with valid password", func(t *testing.T) {
 		// Arrange
 		password := "mySecurePassword123"
@@ -53,7 +53,8 @@ func TestHashPassword(t *testing.T) {
 
 	t.Run("HashPassword with long password", func(t *testing.T) {
 		// Arrange
-		password := "thisIsAVeryLongPasswordWithLotsOfCharacters1234567890!@#$%^&*()_+-=[]{}|;:',.<>?/~`"
+		// Password is 70 bytes (under bcrypt's 72 byte limit)
+		password := "thisIsAVeryLongPasswordWithCharacters1234567890!@#$%^&*()_+-=[]"
 
 		// Act
 		hashedPassword, err := HashPassword(password)
@@ -76,7 +77,7 @@ func TestHashPassword(t *testing.T) {
 	})
 }
 
-func TestComparePassword(t *testing.T) {
+func TestUnitComparePassword(t *testing.T) {
 	t.Run("ComparePassword with matching password", func(t *testing.T) {
 		// Arrange
 		password := "mySecurePassword123"
@@ -157,7 +158,7 @@ func TestComparePassword(t *testing.T) {
 	})
 }
 
-func TestHashAndComparePasswordIntegration(t *testing.T) {
+func TestUnitHashAndComparePasswordIntegration(t *testing.T) {
 	t.Run("Complete password workflow", func(t *testing.T) {
 		// Arrange
 		passwords := []string{

@@ -17,9 +17,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/clivern/yun/api"
-	"github.com/clivern/yun/db"
-	"github.com/clivern/yun/middleware"
+	"github.com/clivern/mut/api"
+	"github.com/clivern/mut/db"
+	"github.com/clivern/mut/middleware"
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"

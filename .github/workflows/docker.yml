@@ -22,7 +22,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@032a4b3bda1b716928481836ac5bfe36e1feaad6
         with:
-          images: clivern/yun
+          images: clivern/mut
 
       - name: Build and push Docker image
         uses: docker/build-push-action@9e436ba9f2d7bcd1d038c8e55d039d37896ddc5d

@@ -4,7 +4,7 @@
       <!-- Logo and Header -->
       <div class="text-center mb-10">
         <div class="flex justify-center mb-8">
-          <img src="/logo.png" alt="Yun Logo" class="h-24 w-auto">
+          <img src="/logo.png" alt="Mut Logo" class="h-24 w-auto">
         </div>
       </div>
 
@@ -88,7 +88,7 @@
 
       <!-- Footer -->
       <p class="text-center text-xs text-notion-textLight mt-8">
-        Copyright © 2025 Yun. All rights reserved.
+        Copyright © 2025 Mut. All rights reserved.
       </p>
     </div>
   </div>

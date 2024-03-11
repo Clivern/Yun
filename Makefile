@@ -5,7 +5,7 @@ pkgs          = ./...
 
 help: Makefile
 	@echo
-	@echo " Choose a command run in Yun:"
+	@echo " Choose a command run in Mut:"
 	@echo
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
@@ -59,7 +59,7 @@ test:
 	$(go) test -mod=readonly -run=Unit -bench=. -benchmem -v -cover $(pkgs)
 
 
-## integration: Run integration test cases (Requires etcd)
+## integration: Run integration test cases
 .PHONY: integration
 integration:
 	@echo ">> ============= Running All Tests ============= <<"
@@ -116,12 +116,12 @@ coverage:
 .PHONY: run
 run:
 	@echo ">> ============= Run API Server ============= <<"
-	$(go) run yun.go server -c config.dist.yml
+	$(go) run mut.go server -c config.dist.yml
 
 
 ## ci: Run all CI tests.
 .PHONY: ci
-ci: style check_license test vet lint
+ci: style check_license test vet lint integration
 	@echo "\n==> All quality checks passed"
 
 

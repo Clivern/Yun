@@ -6,7 +6,7 @@
         <div class="flex justify-between h-14">
           <div class="flex items-center">
             <div class="flex-shrink-0 flex items-center">
-              <img src="/logo.png" alt="Yun Logo" class="h-8 w-auto">
+              <img src="/logo.png" alt="Mut Logo" class="h-8 w-auto">
             </div>
             <div class="hidden md:ml-8 md:flex md:space-x-1">
               <router-link
