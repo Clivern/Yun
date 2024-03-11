@@ -22,7 +22,7 @@ func TestUnitHealth(t *testing.T) {
 	}{
 		{
 			name: "successful health check",
-			handler: func(w http.ResponseWriter, r *http.Request) {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
 				response := HealthResponse{Status: "ok"}
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(response)
@@ -32,7 +32,7 @@ func TestUnitHealth(t *testing.T) {
 		},
 		{
 			name: "error response",
-			handler: func(w http.ResponseWriter, r *http.Request) {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("internal server error"))
 			},
@@ -59,7 +59,7 @@ func TestUnitHealth(t *testing.T) {
 }
 
 func TestUnitClient_Health(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		response := HealthResponse{Status: "ok"}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)

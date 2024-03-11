@@ -18,7 +18,7 @@ import (
 
 // Helper function to get the path to the basic mock server script
 func createMockServerScript(t *testing.T) string {
-	scriptPath := filepath.Join("..", "testdata", "discovery", "mock_server.py")
+	scriptPath := filepath.Join("..", "testdata", "mock_server.py")
 	absPath, err := filepath.Abs(scriptPath)
 	require.NoError(t, err)
 	return absPath
@@ -26,7 +26,7 @@ func createMockServerScript(t *testing.T) string {
 
 // Helper function to get the path to the full mock MCP server script
 func createFullMockServerScript(t *testing.T) string {
-	scriptPath := filepath.Join("..", "testdata", "discovery", "mock_mcp_server.py")
+	scriptPath := filepath.Join("..", "testdata", "mock_mcp_server.py")
 	absPath, err := filepath.Abs(scriptPath)
 	require.NoError(t, err)
 	return absPath
@@ -333,7 +333,7 @@ func TestIntegrationStdioClient_Timeout(t *testing.T) {
 	requirePython3(t)
 
 	// Get path to the slow server script
-	scriptPath := filepath.Join("..", "testdata", "discovery", "slow_server.py")
+	scriptPath := filepath.Join("..", "testdata", "slow_server.py")
 	scriptPath, err := filepath.Abs(scriptPath)
 	require.NoError(t, err)
 
@@ -358,7 +358,7 @@ func TestIntegrationStdioClient_JSONRPCError(t *testing.T) {
 	requirePython3(t)
 
 	// Get path to the error server script
-	scriptPath := filepath.Join("..", "testdata", "discovery", "error_server.py")
+	scriptPath := filepath.Join("..", "testdata", "error_server.py")
 	scriptPath, err := filepath.Abs(scriptPath)
 	require.NoError(t, err)
 
@@ -385,7 +385,7 @@ func TestIntegrationStdioClient_WorkingDirectory(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Get path to the working directory check script
-	scriptPath := filepath.Join("..", "testdata", "discovery", "check_cwd.py")
+	scriptPath := filepath.Join("..", "testdata", "check_cwd.py")
 	scriptPath, err := filepath.Abs(scriptPath)
 	require.NoError(t, err)
 

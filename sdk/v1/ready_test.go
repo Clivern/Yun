@@ -22,7 +22,7 @@ func TestUnitReady(t *testing.T) {
 	}{
 		{
 			name: "successful readiness check",
-			handler: func(w http.ResponseWriter, r *http.Request) {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
 				response := ReadyResponse{Status: "ok"}
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(response)
@@ -32,7 +32,7 @@ func TestUnitReady(t *testing.T) {
 		},
 		{
 			name: "not ready",
-			handler: func(w http.ResponseWriter, r *http.Request) {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusServiceUnavailable)
 				response := ReadyResponse{Status: "not_ok"}
 				w.Header().Set("Content-Type", "application/json")
@@ -43,7 +43,7 @@ func TestUnitReady(t *testing.T) {
 		},
 		{
 			name: "error response",
-			handler: func(w http.ResponseWriter, r *http.Request) {
+			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("internal server error"))
 			},
@@ -70,7 +70,7 @@ func TestUnitReady(t *testing.T) {
 }
 
 func TestUnitClient_Ready(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		response := ReadyResponse{Status: "ok"}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)

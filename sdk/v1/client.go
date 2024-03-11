@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package v1 provides the Mut API client implementation.
 package v1
 
 import (
