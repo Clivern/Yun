@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="Mut Logo" src="/static/logo.png?v=0.4.0" width="220" />
+    <img alt="Mut Logo" src="/static/logo.png?v=0.1.0" width="220" />
     <h3 align="center">Mut</h3>
     <p align="center">A Fast, Lightweight, Secure MCP Gateway, Set up in Minutes</p>
     <p align="center">
@@ -7,7 +7,7 @@
             <img src="https://github.com/Clivern/Mut/actions/workflows/api.yml/badge.svg">
         </a>
         <a href="https://github.com/Clivern/Mut/releases">
-            <img src="https://img.shields.io/badge/Version-v0.4.0-red.svg">
+            <img src="https://img.shields.io/badge/Version-v0.1.0-red.svg">
         </a>
         <a href="https://github.com/Clivern/Mut/blob/main/LICENSE">
             <img src="https://img.shields.io/badge/LICENSE-MIT-grey.svg">
