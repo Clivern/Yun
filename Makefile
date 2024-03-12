@@ -11,9 +11,9 @@ help: Makefile
 	@echo
 
 
-## install_revive: Install revive for linting.
-.PHONY: install_revive
-install_revive:
+## revive: Install revive for linting.
+.PHONY: revive
+revive:
 	@echo ">> ============= Install Revive ============= <<"
 	$(go) install github.com/mgechev/revive@latest
 

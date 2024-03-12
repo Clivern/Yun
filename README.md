@@ -36,6 +36,11 @@ For transparency into our release cycle and in striving to maintain backward com
 See the [Releases section of our GitHub project](https://github.com/Clivern/Mut/releases) for changelogs for each release version of Mut. It contains summaries of the most noteworthy changes made in each release. Also see the [Milestones section](https://github.com/Clivern/Mut/milestones) for the future roadmap.
 
 
+### 📚 MCP Protocol
+
+For the official MCP protocol schema and specification, see [modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol). This repository contains the complete protocol definitions, TypeScript types, and JSON Schema files.
+
+
 ### 🐞 Bug tracker
 
 If you have any suggestions, bug reports, or annoyances please report them to our issue tracker at https://github.com/Clivern/Mut/issues

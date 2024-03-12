@@ -202,6 +202,10 @@ func (c *StdioClient) sendRequest(ctx context.Context, method string, params map
 
 	select {
 	case response := <-responseChan:
+		// Validate response ID matches request ID
+		if response.ID != reqID {
+			return nil, fmt.Errorf("response ID mismatch: expected %d, got %d", reqID, response.ID)
+		}
 		if response.Error != nil {
 			return nil, fmt.Errorf("JSON-RPC error %d: %s", response.Error.Code, response.Error.Message)
 		}
