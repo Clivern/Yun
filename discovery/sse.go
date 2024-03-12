@@ -5,9 +5,18 @@
 package discovery
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 // SSEClient implements Client using Server-Sent Events over HTTP
@@ -15,7 +24,11 @@ type SSEClient struct {
 	id              string
 	url             string
 	headers         map[string]string
+	httpClient      *http.Client
 	requestID       int
+	requestIDMutex  sync.Mutex
+	sessionID       string
+	sessionMutex    sync.Mutex
 	protocolVersion MCPProtocolVersion
 	jsonRPCVersion  JSONRPCVersion
 	clientInfo      ClientInfo
@@ -74,10 +87,23 @@ func NewSSEClient(config SSEClientConfig) (Client, error) {
 		return nil, fmt.Errorf("SSE URL is required")
 	}
 
+	// Initialize headers map if nil
+	headers := config.Headers
+	if headers == nil {
+		headers = make(map[string]string)
+	}
+
+	// Create HTTP client with timeout
+	httpClient := &http.Client{
+		Timeout: config.Timeout,
+	}
+
 	return &SSEClient{
 		id:              config.ID,
 		url:             config.URL,
-		headers:         config.Headers,
+		headers:         headers,
+		httpClient:      httpClient,
+		requestID:       0,
 		protocolVersion: config.ProtocolVersion,
 		jsonRPCVersion:  config.JSONRPCVersion,
 		clientInfo:      config.ClientInfo,
@@ -85,56 +111,418 @@ func NewSSEClient(config SSEClientConfig) (Client, error) {
 	}, nil
 }
 
+// nextRequestID returns the next request ID
+func (c *SSEClient) nextRequestID() int {
+	c.requestIDMutex.Lock()
+	defer c.requestIDMutex.Unlock()
+	c.requestID++
+	return c.requestID
+}
+
+// sendRequest sends a JSON-RPC request via HTTP POST and returns the response
+func (c *SSEClient) sendRequest(ctx context.Context, method string, params map[string]interface{}) (*JSONRPCResponse, error) {
+	reqID := c.nextRequestID()
+	request := JSONRPCRequest{
+		JSONRPC: string(c.jsonRPCVersion),
+		ID:      &reqID,
+		Method:  method,
+		Params:  params,
+	}
+
+	// Marshal request
+	data, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	log.Info().
+		Str("method", method).
+		Int("id", reqID).
+		Str("sse_id", c.id).
+		Msg("Sending MCP request via SSE")
+
+	// Create HTTP request
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	for key, value := range c.headers {
+		req.Header.Set(key, value)
+	}
+
+	// Add session ID if we have one
+	c.sessionMutex.Lock()
+	if c.sessionID != "" {
+		req.Header.Set("mcp-session-id", c.sessionID)
+	}
+	c.sessionMutex.Unlock()
+
+	// Send request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("HTTP request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check status code
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(body))
+	}
+
+	// Read and unmarshal response
+	// Check if response is SSE format
+	contentType := resp.Header.Get("Content-Type")
+	var jsonData []byte
+
+	if strings.Contains(contentType, "text/event-stream") {
+		// Parse SSE format: event: message\ndata: {...}\n
+		scanner := bufio.NewScanner(resp.Body)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.HasPrefix(line, "data: ") {
+				jsonData = []byte(strings.TrimPrefix(line, "data: "))
+				break
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			return nil, fmt.Errorf("failed to parse SSE response: %w", err)
+		}
+		if jsonData == nil {
+			return nil, fmt.Errorf("no data field found in SSE response")
+		}
+	} else {
+		// Plain JSON response
+		var err error
+		jsonData, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response body: %w", err)
+		}
+	}
+
+	var response JSONRPCResponse
+	if err := json.Unmarshal(jsonData, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if response.Error != nil {
+		return nil, fmt.Errorf("JSON-RPC error %d: %s", response.Error.Code, response.Error.Message)
+	}
+
+	// Extract and store session ID if present
+	if sessionID := resp.Header.Get("mcp-session-id"); sessionID != "" {
+		c.sessionMutex.Lock()
+		c.sessionID = sessionID
+		c.sessionMutex.Unlock()
+	}
+
+	log.Info().
+		Str("method", method).
+		Int("id", reqID).
+		Str("sse_id", c.id).
+		Msg("Received MCP response via SSE")
+
+	return &response, nil
+}
+
+// sendNotification sends a JSON-RPC notification (no response expected)
+func (c *SSEClient) sendNotification(ctx context.Context, method string, params map[string]interface{}) error {
+	request := JSONRPCRequest{
+		JSONRPC: string(c.jsonRPCVersion),
+		Method:  method,
+		Params:  params,
+	}
+
+	data, err := json.Marshal(request)
+	if err != nil {
+		return fmt.Errorf("failed to marshal notification: %w", err)
+	}
+
+	log.Info().
+		Str("method", method).
+		Str("sse_id", c.id).
+		Msg("Sending MCP notification via SSE")
+
+	// Create HTTP request
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(data))
+	if err != nil {
+		return fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	for key, value := range c.headers {
+		req.Header.Set(key, value)
+	}
+
+	// Add session ID if we have one
+	c.sessionMutex.Lock()
+	if c.sessionID != "" {
+		req.Header.Set("mcp-session-id", c.sessionID)
+	}
+	c.sessionMutex.Unlock()
+
+	// Send request (we don't need to read the response for notifications)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("HTTP request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check status code (202 Accepted is also a valid response for notifications)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusAccepted {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
 // Initialize initializes the MCP connection
-func (c *SSEClient) Initialize(_ context.Context) (*InitializeResult, error) {
-	// TODO: Implement SSE initialization
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) Initialize(ctx context.Context) (*InitializeResult, error) {
+	if c.initialized {
+		return nil, fmt.Errorf("client already initialized")
+	}
+
+	params := map[string]interface{}{
+		"protocolVersion": string(c.protocolVersion),
+		"capabilities":    map[string]interface{}{},
+		"clientInfo": map[string]interface{}{
+			"name":    c.clientInfo.Name,
+			"version": c.clientInfo.Version,
+		},
+	}
+
+	response, err := c.sendRequest(ctx, "initialize", params)
+	if err != nil {
+		return nil, fmt.Errorf("initialize request failed: %w", err)
+	}
+
+	result, err := ParseInitializeResponse(response.Result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse initialize response: %w", err)
+	}
+
+	c.serverInfo = &result.ServerInfo
+	c.initialized = true
+
+	// Send initialized notification
+	if err := c.sendNotification(ctx, "notifications/initialized", nil); err != nil {
+		return nil, fmt.Errorf("failed to send initialized notification: %w", err)
+	}
+
+	log.Info().
+		Str("server", result.ServerInfo.Name).
+		Str("version", result.ServerInfo.Version).
+		Str("sse_id", c.id).
+		Msg("MCP client initialized via SSE")
+
+	return result, nil
 }
 
 // ListTools lists all available tools
-func (c *SSEClient) ListTools(_ context.Context) ([]Tool, error) {
-	// TODO: Implement SSE tools/list
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) ListTools(ctx context.Context) ([]Tool, error) {
+	if !c.initialized {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	response, err := c.sendRequest(ctx, "tools/list", map[string]interface{}{})
+	if err != nil {
+		return nil, fmt.Errorf("tools/list request failed: %w", err)
+	}
+
+	return ParseToolsListResponse(response.Result)
 }
 
 // CallTool calls a tool with given arguments
-func (c *SSEClient) CallTool(_ context.Context, _ string, _ ToolArgument) (*ToolCallResult, error) {
-	// TODO: Implement SSE tools/call
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) CallTool(ctx context.Context, name string, arguments ToolArgument) (*ToolCallResult, error) {
+	if !c.initialized {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	params := map[string]interface{}{
+		"name":      name,
+		"arguments": arguments,
+	}
+
+	response, err := c.sendRequest(ctx, "tools/call", params)
+	if err != nil {
+		return nil, fmt.Errorf("tools/call request failed: %w", err)
+	}
+
+	// Parse result
+	data, err := json.Marshal(response.Result)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ToolCallResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 // ListPrompts lists all available prompts
-func (c *SSEClient) ListPrompts(_ context.Context) ([]Prompt, error) {
-	// TODO: Implement SSE prompts/list
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) ListPrompts(ctx context.Context) ([]Prompt, error) {
+	if !c.initialized {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	response, err := c.sendRequest(ctx, "prompts/list", map[string]interface{}{})
+	if err != nil {
+		return nil, fmt.Errorf("prompts/list request failed: %w", err)
+	}
+
+	return ParsePromptsListResponse(response.Result)
 }
 
 // GetPrompt gets a prompt with given arguments
-func (c *SSEClient) GetPrompt(_ context.Context, _ string, _ map[string]string) (*PromptResult, error) {
-	// TODO: Implement SSE prompts/get
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) GetPrompt(ctx context.Context, name string, arguments map[string]string) (*PromptResult, error) {
+	if !c.initialized {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	params := map[string]interface{}{
+		"name":      name,
+		"arguments": arguments,
+	}
+
+	response, err := c.sendRequest(ctx, "prompts/get", params)
+	if err != nil {
+		return nil, fmt.Errorf("prompts/get request failed: %w", err)
+	}
+
+	// Parse result
+	data, err := json.Marshal(response.Result)
+	if err != nil {
+		return nil, err
+	}
+
+	var result PromptResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 // ListResources lists all available resources
-func (c *SSEClient) ListResources(_ context.Context) ([]Resource, error) {
-	// TODO: Implement SSE resources/list
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) ListResources(ctx context.Context) ([]Resource, error) {
+	if !c.initialized {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	response, err := c.sendRequest(ctx, "resources/list", map[string]interface{}{})
+	if err != nil {
+		return nil, fmt.Errorf("resources/list request failed: %w", err)
+	}
+
+	return ParseResourcesListResponse(response.Result)
 }
 
 // ReadResource reads a resource by URI
-func (c *SSEClient) ReadResource(_ context.Context, _ string) (*ResourceReadResult, error) {
-	// TODO: Implement SSE resources/read
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) ReadResource(ctx context.Context, uri string) (*ResourceReadResult, error) {
+	if !c.initialized {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	params := map[string]interface{}{
+		"uri": uri,
+	}
+
+	response, err := c.sendRequest(ctx, "resources/read", params)
+	if err != nil {
+		return nil, fmt.Errorf("resources/read request failed: %w", err)
+	}
+
+	// Parse result
+	data, err := json.Marshal(response.Result)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ResourceReadResult
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 // Discover performs full discovery of server capabilities
-func (c *SSEClient) Discover(_ context.Context) (*Result, error) {
-	// TODO: Implement SSE full discovery
-	return nil, fmt.Errorf("SSE client not yet implemented")
+func (c *SSEClient) Discover(ctx context.Context) (*Result, error) {
+	// Initialize if not already done
+	if !c.initialized {
+		initResult, err := c.Initialize(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("initialization failed: %w", err)
+		}
+		c.serverInfo = &initResult.ServerInfo
+	}
+
+	result := &Result{
+		ServerInfo: *c.serverInfo,
+	}
+
+	// Discover tools
+	tools, err := c.ListTools(ctx)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("sse_id", c.id).
+			Msg("Failed to list tools")
+	} else {
+		result.Tools = tools
+	}
+
+	// Discover prompts
+	prompts, err := c.ListPrompts(ctx)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("sse_id", c.id).
+			Msg("Failed to list prompts")
+	} else {
+		result.Prompts = prompts
+	}
+
+	// Discover resources
+	resources, err := c.ListResources(ctx)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("sse_id", c.id).
+			Msg("Failed to list resources")
+	} else {
+		result.Resources = resources
+	}
+
+	log.Info().
+		Int("tools", len(result.Tools)).
+		Int("prompts", len(result.Prompts)).
+		Int("resources", len(result.Resources)).
+		Str("sse_id", c.id).
+		Msg("MCP discovery completed via SSE")
+
+	return result, nil
 }
 
 // Close closes the client connection
 func (c *SSEClient) Close() error {
-	// TODO: Implement SSE connection cleanup
+	log.Info().
+		Str("sse_id", c.id).
+		Msg("Closing MCP SSE client")
+
+	// HTTP client doesn't need explicit cleanup, but we reset the state
+	c.initialized = false
+	c.serverInfo = nil
+
 	return nil
 }

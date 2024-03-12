@@ -41,3 +41,38 @@ func DiscoverStdio(ctx context.Context, config StdioClientConfig) (*Result, erro
 
 	return result, nil
 }
+
+// DiscoverSSE discovers the MCP server using SSE (Server-Sent Events)
+func DiscoverSSE(ctx context.Context, config SSEClientConfig) (*Result, error) {
+	client, err := NewSSEClient(config)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("sse_id", config.ID).
+			Str("url", config.URL).
+			Msg("Failed to create SSE client")
+		return nil, err
+	}
+
+	log.Info().
+		Str("sse_id", config.ID).
+		Str("url", config.URL).
+		Msg("Created SSE client")
+
+	result, err := client.Discover(ctx)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("sse_id", config.ID).
+			Str("url", config.URL).
+			Msg("Failed to discover MCP server")
+		return nil, err
+	}
+
+	log.Info().
+		Str("sse_id", config.ID).
+		Str("url", config.URL).
+		Msg("Discovered MCP server")
+
+	return result, nil
+}
