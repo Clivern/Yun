@@ -19,8 +19,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// SSEClient implements Client using Server-Sent Events over HTTP
-type SSEClient struct {
+// StreamableHTTPClient implements Client using streamable HTTP communication
+type StreamableHTTPClient struct {
 	id              string
 	url             string
 	headers         map[string]string
@@ -37,12 +37,12 @@ type SSEClient struct {
 	timeout         time.Duration
 }
 
-// SSEClientConfig represents configuration for SSEClient
-type SSEClientConfig struct {
+// StreamableHTTPClientConfig represents configuration for StreamableHTTPClient
+type StreamableHTTPClientConfig struct {
 	// ID is an optional database identifier for logging (e.g., "gateway:123")
 	ID string
 
-	// URL is the SSE endpoint URL (e.g., "https://api.example.com/mcp/sse")
+	// URL is the HTTP endpoint URL (e.g., "https://api.example.com/mcp")
 	URL string
 
 	// Headers for authentication/authorization
@@ -65,8 +65,8 @@ type SSEClientConfig struct {
 	Timeout time.Duration
 }
 
-// NewSSEClient creates a new SSE client
-func NewSSEClient(config SSEClientConfig) (Client, error) {
+// NewStreamableHTTPClient creates a new streamable HTTP client
+func NewStreamableHTTPClient(config StreamableHTTPClientConfig) (Client, error) {
 	// Set defaults
 	if config.ProtocolVersion == "" {
 		config.ProtocolVersion = DefaultMCPVersion
@@ -84,7 +84,7 @@ func NewSSEClient(config SSEClientConfig) (Client, error) {
 		config.Timeout = 30 * time.Second
 	}
 	if config.URL == "" {
-		return nil, fmt.Errorf("SSE URL is required")
+		return nil, fmt.Errorf("HTTP URL is required")
 	}
 
 	// Initialize headers map if nil
@@ -98,7 +98,7 @@ func NewSSEClient(config SSEClientConfig) (Client, error) {
 		Timeout: config.Timeout,
 	}
 
-	return &SSEClient{
+	return &StreamableHTTPClient{
 		id:              config.ID,
 		url:             config.URL,
 		headers:         headers,
@@ -112,7 +112,7 @@ func NewSSEClient(config SSEClientConfig) (Client, error) {
 }
 
 // nextRequestID returns the next request ID
-func (c *SSEClient) nextRequestID() int {
+func (c *StreamableHTTPClient) nextRequestID() int {
 	c.requestIDMutex.Lock()
 	defer c.requestIDMutex.Unlock()
 	c.requestID++
@@ -120,7 +120,7 @@ func (c *SSEClient) nextRequestID() int {
 }
 
 // sendRequest sends a JSON-RPC request via HTTP POST and returns the response
-func (c *SSEClient) sendRequest(ctx context.Context, method string, params map[string]interface{}) (*JSONRPCResponse, error) {
+func (c *StreamableHTTPClient) sendRequest(ctx context.Context, method string, params map[string]interface{}) (*JSONRPCResponse, error) {
 	reqID := c.nextRequestID()
 	request := JSONRPCRequest{
 		JSONRPC: string(c.jsonRPCVersion),
@@ -138,11 +138,14 @@ func (c *SSEClient) sendRequest(ctx context.Context, method string, params map[s
 	log.Info().
 		Str("method", method).
 		Int("id", reqID).
-		Str("sse_id", c.id).
-		Msg("Sending MCP request via SSE")
+		Str("http_id", c.id).
+		Msg("Sending MCP request via HTTP")
 
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(data))
+	// Create HTTP request with context timeout
+	reqCtx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, c.url, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
 	}
@@ -209,6 +212,11 @@ func (c *SSEClient) sendRequest(ctx context.Context, method string, params map[s
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
+	// Validate response ID matches request ID
+	if response.ID != reqID {
+		return nil, fmt.Errorf("response ID mismatch: expected %d, got %d", reqID, response.ID)
+	}
+
 	if response.Error != nil {
 		return nil, fmt.Errorf("JSON-RPC error %d: %s", response.Error.Code, response.Error.Message)
 	}
@@ -223,14 +231,14 @@ func (c *SSEClient) sendRequest(ctx context.Context, method string, params map[s
 	log.Info().
 		Str("method", method).
 		Int("id", reqID).
-		Str("sse_id", c.id).
-		Msg("Received MCP response via SSE")
+		Str("http_id", c.id).
+		Msg("Received MCP response via HTTP")
 
 	return &response, nil
 }
 
 // sendNotification sends a JSON-RPC notification (no response expected)
-func (c *SSEClient) sendNotification(ctx context.Context, method string, params map[string]interface{}) error {
+func (c *StreamableHTTPClient) sendNotification(ctx context.Context, method string, params map[string]interface{}) error {
 	request := JSONRPCRequest{
 		JSONRPC: string(c.jsonRPCVersion),
 		Method:  method,
@@ -244,11 +252,14 @@ func (c *SSEClient) sendNotification(ctx context.Context, method string, params 
 
 	log.Info().
 		Str("method", method).
-		Str("sse_id", c.id).
-		Msg("Sending MCP notification via SSE")
+		Str("http_id", c.id).
+		Msg("Sending MCP notification via HTTP")
 
-	// Create HTTP request
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(data))
+	// Create HTTP request with context timeout
+	reqCtx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, c.url, bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %w", err)
 	}
@@ -284,7 +295,7 @@ func (c *SSEClient) sendNotification(ctx context.Context, method string, params 
 }
 
 // Initialize initializes the MCP connection
-func (c *SSEClient) Initialize(ctx context.Context) (*InitializeResult, error) {
+func (c *StreamableHTTPClient) Initialize(ctx context.Context) (*InitializeResult, error) {
 	if c.initialized {
 		return nil, fmt.Errorf("client already initialized")
 	}
@@ -319,14 +330,14 @@ func (c *SSEClient) Initialize(ctx context.Context) (*InitializeResult, error) {
 	log.Info().
 		Str("server", result.ServerInfo.Name).
 		Str("version", result.ServerInfo.Version).
-		Str("sse_id", c.id).
-		Msg("MCP client initialized via SSE")
+		Str("http_id", c.id).
+		Msg("MCP client initialized via HTTP")
 
 	return result, nil
 }
 
 // ListTools lists all available tools
-func (c *SSEClient) ListTools(ctx context.Context) ([]Tool, error) {
+func (c *StreamableHTTPClient) ListTools(ctx context.Context) ([]Tool, error) {
 	if !c.initialized {
 		return nil, fmt.Errorf("client not initialized")
 	}
@@ -340,7 +351,7 @@ func (c *SSEClient) ListTools(ctx context.Context) ([]Tool, error) {
 }
 
 // CallTool calls a tool with given arguments
-func (c *SSEClient) CallTool(ctx context.Context, name string, arguments ToolArgument) (*ToolCallResult, error) {
+func (c *StreamableHTTPClient) CallTool(ctx context.Context, name string, arguments ToolArgument) (*ToolCallResult, error) {
 	if !c.initialized {
 		return nil, fmt.Errorf("client not initialized")
 	}
@@ -370,7 +381,7 @@ func (c *SSEClient) CallTool(ctx context.Context, name string, arguments ToolArg
 }
 
 // ListPrompts lists all available prompts
-func (c *SSEClient) ListPrompts(ctx context.Context) ([]Prompt, error) {
+func (c *StreamableHTTPClient) ListPrompts(ctx context.Context) ([]Prompt, error) {
 	if !c.initialized {
 		return nil, fmt.Errorf("client not initialized")
 	}
@@ -384,7 +395,7 @@ func (c *SSEClient) ListPrompts(ctx context.Context) ([]Prompt, error) {
 }
 
 // GetPrompt gets a prompt with given arguments
-func (c *SSEClient) GetPrompt(ctx context.Context, name string, arguments map[string]string) (*PromptResult, error) {
+func (c *StreamableHTTPClient) GetPrompt(ctx context.Context, name string, arguments map[string]string) (*PromptResult, error) {
 	if !c.initialized {
 		return nil, fmt.Errorf("client not initialized")
 	}
@@ -414,7 +425,7 @@ func (c *SSEClient) GetPrompt(ctx context.Context, name string, arguments map[st
 }
 
 // ListResources lists all available resources
-func (c *SSEClient) ListResources(ctx context.Context) ([]Resource, error) {
+func (c *StreamableHTTPClient) ListResources(ctx context.Context) ([]Resource, error) {
 	if !c.initialized {
 		return nil, fmt.Errorf("client not initialized")
 	}
@@ -428,7 +439,7 @@ func (c *SSEClient) ListResources(ctx context.Context) ([]Resource, error) {
 }
 
 // ReadResource reads a resource by URI
-func (c *SSEClient) ReadResource(ctx context.Context, uri string) (*ResourceReadResult, error) {
+func (c *StreamableHTTPClient) ReadResource(ctx context.Context, uri string) (*ResourceReadResult, error) {
 	if !c.initialized {
 		return nil, fmt.Errorf("client not initialized")
 	}
@@ -457,7 +468,7 @@ func (c *SSEClient) ReadResource(ctx context.Context, uri string) (*ResourceRead
 }
 
 // Discover performs full discovery of server capabilities
-func (c *SSEClient) Discover(ctx context.Context) (*Result, error) {
+func (c *StreamableHTTPClient) Discover(ctx context.Context) (*Result, error) {
 	// Initialize if not already done
 	if !c.initialized {
 		initResult, err := c.Initialize(ctx)
@@ -476,7 +487,7 @@ func (c *SSEClient) Discover(ctx context.Context) (*Result, error) {
 	if err != nil {
 		log.Warn().
 			Err(err).
-			Str("sse_id", c.id).
+			Str("http_id", c.id).
 			Msg("Failed to list tools")
 	} else {
 		result.Tools = tools
@@ -487,7 +498,7 @@ func (c *SSEClient) Discover(ctx context.Context) (*Result, error) {
 	if err != nil {
 		log.Warn().
 			Err(err).
-			Str("sse_id", c.id).
+			Str("http_id", c.id).
 			Msg("Failed to list prompts")
 	} else {
 		result.Prompts = prompts
@@ -498,7 +509,7 @@ func (c *SSEClient) Discover(ctx context.Context) (*Result, error) {
 	if err != nil {
 		log.Warn().
 			Err(err).
-			Str("sse_id", c.id).
+			Str("http_id", c.id).
 			Msg("Failed to list resources")
 	} else {
 		result.Resources = resources
@@ -508,17 +519,17 @@ func (c *SSEClient) Discover(ctx context.Context) (*Result, error) {
 		Int("tools", len(result.Tools)).
 		Int("prompts", len(result.Prompts)).
 		Int("resources", len(result.Resources)).
-		Str("sse_id", c.id).
-		Msg("MCP discovery completed via SSE")
+		Str("http_id", c.id).
+		Msg("MCP discovery completed via HTTP")
 
 	return result, nil
 }
 
 // Close closes the client connection
-func (c *SSEClient) Close() error {
+func (c *StreamableHTTPClient) Close() error {
 	log.Info().
-		Str("sse_id", c.id).
-		Msg("Closing MCP SSE client")
+		Str("http_id", c.id).
+		Msg("Closing MCP HTTP client")
 
 	// HTTP client doesn't need explicit cleanup, but we reset the state
 	c.initialized = false

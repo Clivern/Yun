@@ -8,10 +8,6 @@
 # Copyright 2025 Clivern. All rights reserved.
 # Use of this source code is governed by the MIT
 # license that can be found in the LICENSE file.
-"""
-Simple MCP Server with 2 tools, 2 resources, and 2 prompts using FastMCP.
-Run with: uv run testdata/sse_server_01.py
-"""
 
 from fastmcp import FastMCP
 

@@ -50,7 +50,7 @@ async def server_info() -> str:
     Returns:
         Information about this MCP server
     """
-    return """MyServer v1.0.0
+    return """Mut v1.0.0
 
 This is a Model Context Protocol (MCP) server that provides:
 
@@ -75,7 +75,7 @@ async def user_guide() -> str:
     Returns:
         User guide documentation
     """
-    return """MyServer User Guide
+    return """Mut User Guide
 
 USAGE EXAMPLES:
 
@@ -112,7 +112,7 @@ def greeting(name: str = "friend") -> list[dict]:
             "role": "user",
             "content": {
                 "type": "text",
-                "text": f"Hello, {name}! Welcome to MyServer. How can I help you today?"
+                "text": f"Hello, {name}! Welcome to Mut. How can I help you today?"
             }
         }
     ]
@@ -133,11 +133,16 @@ def farewell(name: str = "friend") -> list[dict]:
             "role": "user",
             "content": {
                 "type": "text",
-                "text": f"Goodbye, {name}! Thank you for using MyServer. Have a great day!"
+                "text": f"Goodbye, {name}! Thank you for using Mut. Have a great day!"
             }
         }
     ]
 
 
 if __name__ == "__main__":
-    mcp.run(show_banner=False)
+    mcp.run(
+        transport="http",
+        host="127.0.0.1",
+        port=8000,
+        show_banner=False,
+    )

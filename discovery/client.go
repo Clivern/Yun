@@ -18,8 +18,9 @@ import (
 //   - Security is handled at the OS process level
 //   - Headers are ignored (no protocol-level auth)
 //
-// 2. SSE/HTTP Transport (SSEClient):
-//   - Communicates via Server-Sent Events over HTTP
+// 2. Streamable HTTP Transport (StreamableHTTPClient):
+//   - Communicates via HTTP POST requests
+//   - Supports JSON and Server-Sent Events (SSE) responses
 //   - Supports authentication via HTTP headers
 //   - Headers can include: Authorization, X-API-Key, etc.
 //
@@ -30,10 +31,10 @@ import (
 //	    Args: []string{"-m", "mcp_server"},
 //	})
 //
-// Example usage with SSE (with auth):
+// Example usage with streamable HTTP (with auth):
 //
-//	client, err := NewSSEClient(SSEClientConfig{
-//	    URL: "https://api.example.com/mcp/sse",
+//	client, err := NewStreamableHTTPClient(StreamableHTTPClientConfig{
+//	    URL: "https://api.example.com/mcp",
 //	    Headers: map[string]string{
 //	        "Authorization": "Bearer token123",
 //	        "X-API-Key": "key456",
