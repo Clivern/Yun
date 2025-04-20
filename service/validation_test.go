@@ -61,7 +61,6 @@ func TestUnitValidateStruct(t *testing.T) {
 
 		errorMsg := FormatValidationErrors(err)
 		assert.NotEmpty(t, errorMsg)
-		// Field name URL gets converted to uRL (camelCase)
 		assert.Contains(t, errorMsg, "URL")
 	})
 
@@ -89,7 +88,6 @@ func TestUnitValidateStruct(t *testing.T) {
 
 		errorMsg := FormatValidationErrors(err)
 		assert.NotEmpty(t, errorMsg)
-		// Should contain at least one of the required fields
 		assert.True(t,
 			assert.ObjectsAreEqual(errorMsg, errorMsg) &&
 				(len(errorMsg) > 0),
@@ -142,6 +140,5 @@ func TestUnitFormatValidationErrors(t *testing.T) {
 
 	errorMsg := FormatValidationErrors(err)
 	assert.NotEmpty(t, errorMsg)
-	// Should return a properly formatted error message
 	assert.Contains(t, errorMsg, "email")
 }

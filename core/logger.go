@@ -22,18 +22,16 @@ import (
 func SetupLogging() error {
 	var writer io.Writer
 
-	// Handle log file creation if not stdout
 	if viper.GetString("app.log.output") != "stdout" {
 		dir, _ := filepath.Split(viper.GetString("app.log.output"))
 
-		// Create dir
 		if !service.DirExists(dir) {
 			if err := service.EnsureDir(dir, 0775); err != nil {
 				return fmt.Errorf("directory [%s] creation failed: %w", dir, err)
 			}
 		}
 
-		// Create log file if not exists
+		// Create log file if it doesn't exist to ensure it's writable
 		if !service.FileExists(viper.GetString("app.log.output")) {
 			f, err := os.Create(viper.GetString("app.log.output"))
 			if err != nil {
@@ -55,14 +53,12 @@ func SetupLogging() error {
 		writer = os.Stdout
 	}
 
-	// Set log format
 	if viper.GetString("app.log.format") == "json" {
 		log.Logger = zerolog.New(writer).With().Timestamp().Logger()
 	} else {
 		log.Logger = zerolog.New(zerolog.ConsoleWriter{Out: writer}).With().Timestamp().Logger()
 	}
 
-	// Set log level
 	level := strings.ToLower(viper.GetString("app.log.level"))
 
 	switch level {

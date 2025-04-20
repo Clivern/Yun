@@ -25,7 +25,6 @@ type SetupRequest struct {
 
 // SetupAction handles the setup installation
 func SetupAction(w http.ResponseWriter, r *http.Request) {
-	// Parse and validate request
 	var req SetupRequest
 
 	if err := service.DecodeAndValidate(r, &req); err != nil {
@@ -33,13 +32,11 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create setup instance
 	setupModule := module.NewSetup(
 		db.NewOptionRepository(db.GetDB()),
 		db.NewUserRepository(db.GetDB()),
 	)
 
-	// Check if already installed
 	if setupModule.IsInstalled() {
 		service.WriteJSON(w, http.StatusBadRequest, map[string]interface{}{
 			"errorMessage": "Gateway is already installed",
@@ -47,7 +44,6 @@ func SetupAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Perform installation
 	err := setupModule.Install(&module.SetupOptions{
 		GatewayURL:    req.GatewayURL,
 		GatewayEmail:  req.GatewayEmail,

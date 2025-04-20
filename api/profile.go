@@ -18,9 +18,7 @@ import (
 func GetProfileAction(w http.ResponseWriter, r *http.Request) {
 	log.Debug().Msg("Get profile endpoint called")
 
-	// Get user from context (set by auth middleware)
 	user, ok := middleware.GetUserFromContext(r.Context())
-
 	if !ok {
 		service.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
 			"errorMessage": "Not authenticated",

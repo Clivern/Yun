@@ -84,22 +84,18 @@ func PrometheusMiddleware(next http.Handler) http.Handler {
 		start := time.Now().UTC()
 		path := r.URL.Path
 
-		// Record request size
 		reqSize := float64(r.ContentLength)
 		if reqSize > 0 {
 			httpRequestSize.WithLabelValues(r.Method, path).Observe(reqSize)
 		}
 
-		// Wrap response writer to capture metrics
 		wrapped := &metricsResponseWriter{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,
 		}
 
-		// Process request
 		next.ServeHTTP(wrapped, r)
 
-		// Record metrics after request is processed
 		duration := time.Since(start).Seconds()
 		status := strconv.Itoa(wrapped.statusCode)
 

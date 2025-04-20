@@ -25,7 +25,6 @@ func init() {
 		if label != "" {
 			return label
 		}
-		// Fallback to json tag or field name
 		name := fld.Tag.Get("json")
 		if name != "" {
 			return name
@@ -64,17 +63,14 @@ func ValidateStruct(s interface{}) error {
 func FormatValidationErrors(err error) string {
 	if validationErrs, ok := err.(validator.ValidationErrors); ok {
 		if len(validationErrs) > 0 {
-			// Return the first error message
 			return getErrorMessage(validationErrs[0])
 		}
 	}
-	// Return empty string if no errors
 	return ""
 }
 
 // getErrorMessage returns a user-friendly error message based on the validation tag
 func getErrorMessage(e validator.FieldError) string {
-	// Use the field name as set by RegisterTagNameFunc (which uses 'label' tag if available)
 	field := e.Field()
 
 	switch e.Tag() {
@@ -131,12 +127,9 @@ func DecodeJSON(r *http.Request, v interface{}) error {
 
 // DecodeAndValidate decodes JSON and validates the struct in one step
 func DecodeAndValidate(r *http.Request, v interface{}) error {
-	// Decode JSON
 	if err := DecodeJSON(r, v); err != nil {
 		return err
 	}
-
-	// Validate struct
 	return ValidateStruct(v)
 }
 

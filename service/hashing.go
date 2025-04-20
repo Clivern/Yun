@@ -10,13 +10,6 @@ import (
 
 // HashPassword generates a bcrypt hash from a plain text password.
 // It uses the default cost factor (bcrypt.DefaultCost = 10).
-//
-// Example:
-//
-//	hashedPassword, err := HashPassword("mySecurePassword123")
-//	if err != nil {
-//		return err
-//	}
 func HashPassword(password string) (string, error) {
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -26,14 +19,6 @@ func HashPassword(password string) (string, error) {
 }
 
 // ComparePassword compares a bcrypt hashed password with a plain text password.
-// Returns true if the password matches the hash, false otherwise.
-//
-// Example:
-//
-//	isValid := ComparePassword(hashedPassword, "mySecurePassword123")
-//	if !isValid {
-//		return errors.New("invalid password")
-//	}
 func ComparePassword(hashedPassword, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil

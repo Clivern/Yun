@@ -32,15 +32,6 @@ func NewSessionRepository(db *sql.DB) *SessionRepository {
 }
 
 // Create inserts a new session into the database.
-//
-// Example:
-//
-//	session := &Session{
-//		Token:     "secure-random-token",
-//		UserID:    1,
-//		ExpiresAt: time.Now().Add(24 * time.Hour),
-//	}
-//	err := repo.Create(session)
 func (r *SessionRepository) Create(session *Session) error {
 	result, err := r.db.Exec(
 		`INSERT INTO sessions (token, user_id, ip_address, user_agent, expires_at)

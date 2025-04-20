@@ -44,7 +44,6 @@ func (s *Setup) IsInstalled() bool {
 
 // Install performs the initial gateway installation with the provided options.
 func (s *Setup) Install(options *SetupOptions) error {
-	// Check if the database is already installed
 	if s.IsInstalled() {
 		return errors.New("Gateway is already installed")
 	}
@@ -53,7 +52,6 @@ func (s *Setup) Install(options *SetupOptions) error {
 	if err != nil {
 		return err
 	}
-	// Create a new user
 	user := &db.User{
 		Email:       options.AdminEmail,
 		Password:    hashedPassword,
@@ -67,25 +65,21 @@ func (s *Setup) Install(options *SetupOptions) error {
 		return err
 	}
 
-	// Set the installed option
 	err = s.OptionRepository.Create("is_installed", "1")
 	if err != nil {
 		return err
 	}
 
-	// Set the gateway URL option
 	err = s.OptionRepository.Create("gateway_url", options.GatewayURL)
 	if err != nil {
 		return err
 	}
 
-	// Set the gateway email option
 	err = s.OptionRepository.Create("gateway_email", options.GatewayEmail)
 	if err != nil {
 		return err
 	}
 
-	// Set the gateway name option
 	err = s.OptionRepository.Create("gateway_name", options.GatewayName)
 	if err != nil {
 		return err

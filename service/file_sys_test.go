@@ -17,11 +17,9 @@ func TestUnitFileExists(t *testing.T) {
 	t.Run("should return true for existing files", func(t *testing.T) {
 		assert.True(t, FileExists(fmt.Sprintf("%s/.gitignore", pkg.GetBaseDir("cache"))))
 	})
-
 	t.Run("should return false for non-existing files", func(t *testing.T) {
 		assert.False(t, FileExists(fmt.Sprintf("%s/not_found.md", pkg.GetBaseDir("cache"))))
 	})
-
 	t.Run("should return false for directories", func(t *testing.T) {
 		assert.False(t, FileExists(pkg.GetBaseDir("cache")))
 	})
@@ -32,11 +30,9 @@ func TestUnitDirExists(t *testing.T) {
 	t.Run("should return true for existing directories", func(t *testing.T) {
 		assert.True(t, DirExists(pkg.GetBaseDir("cache")))
 	})
-
 	t.Run("should return false for non-existing directories", func(t *testing.T) {
 		assert.False(t, DirExists(fmt.Sprintf("%s/not_found", pkg.GetBaseDir("cache"))))
 	})
-
 	t.Run("should return false for files", func(t *testing.T) {
 		assert.False(t, DirExists(fmt.Sprintf("%s/.gitignore", pkg.GetBaseDir("cache"))))
 	})
@@ -46,14 +42,9 @@ func TestUnitDirExists(t *testing.T) {
 func TestUnitEnsureDir(t *testing.T) {
 	t.Run("should create new directory", func(t *testing.T) {
 		newDir := fmt.Sprintf("%s/test_new_dir", pkg.GetBaseDir("cache"))
-
-		// Clean up if exists from previous test
 		_ = DeleteDir(newDir)
-
 		assert.NoError(t, EnsureDir(newDir, 0755))
 		assert.True(t, DirExists(newDir))
-
-		// Clean up
 		assert.NoError(t, DeleteDir(newDir))
 	})
 
@@ -68,12 +59,8 @@ func TestUnitEnsureDir(t *testing.T) {
 func TestUnitDeleteDir(t *testing.T) {
 	t.Run("should delete existing directory", func(t *testing.T) {
 		testDir := fmt.Sprintf("%s/test_delete_dir", pkg.GetBaseDir("cache"))
-
-		// Create the directory first
 		assert.NoError(t, EnsureDir(testDir, 0755))
 		assert.True(t, DirExists(testDir))
-
-		// Delete it
 		assert.NoError(t, DeleteDir(testDir))
 		assert.False(t, DirExists(testDir))
 	})

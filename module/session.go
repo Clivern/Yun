@@ -28,42 +28,30 @@ func NewSessionManager(sessionRepo *db.SessionRepository, userRepo *db.UserRepos
 }
 
 // CreateSession creates a new session for a user.
-//
-// Example:
-//
-//	session, err := manager.CreateSession(userID, 24*time.Hour, "192.168.1.1", "Mozilla/5.0...")
 func (s *SessionManager) CreateSession(userID int64, duration time.Duration, ipAddress, userAgent string) (*db.Session, error) {
-	// Verify user exists
 	user, err := s.UserRepo.GetByID(userID)
 	if err != nil {
 		return nil, err
 	}
-
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
-
-	// Generate secure random token
 	token, err := generateSecureToken(32)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create session
 	session := &db.Session{
 		Token:     token,
 		UserID:    userID,
 		ExpiresAt: time.Now().UTC().Add(duration),
 	}
-
 	if ipAddress != "" {
 		session.IPAddress = &ipAddress
 	}
-
 	if userAgent != "" {
 		session.UserAgent = &userAgent
 	}
-
 	err = s.SessionRepo.Create(session)
 	if err != nil {
 		return nil, err
@@ -78,54 +66,26 @@ func (s *SessionManager) ValidateSession(token string) (*db.User, *db.Session, e
 	if err != nil {
 		return nil, nil, err
 	}
-
 	if session == nil {
 		return nil, nil, errors.New("session not found")
 	}
-
-	// Check if session is expired
 	if session.ExpiresAt.Before(time.Now().UTC()) {
-		// Clean up expired session
 		s.SessionRepo.Delete(session.ID)
 		return nil, nil, errors.New("session expired")
 	}
 
-	// Get user
 	user, err := s.UserRepo.GetByID(session.UserID)
 	if err != nil {
 		return nil, nil, err
 	}
-
 	if user == nil {
 		return nil, nil, errors.New("user not found")
 	}
-
-	// Check if user is active
 	if !user.IsActive {
 		return nil, nil, errors.New("user is not active")
 	}
 
 	return user, session, nil
-}
-
-// RefreshSession extends the expiration time of a session.
-func (s *SessionManager) RefreshSession(token string, duration time.Duration) error {
-	session, err := s.SessionRepo.GetByToken(token)
-	if err != nil {
-		return err
-	}
-
-	if session == nil {
-		return errors.New("session not found")
-	}
-
-	newExpiration := time.Now().UTC().Add(duration)
-	return s.SessionRepo.UpdateExpiration(session.ID, newExpiration)
-}
-
-// RevokeSession revokes a session by token.
-func (s *SessionManager) RevokeSession(token string) error {
-	return s.SessionRepo.DeleteByToken(token)
 }
 
 // RevokeUserSessions revokes all sessions for a user.
@@ -140,7 +100,6 @@ func (s *SessionManager) GetUserSessions(userID int64) ([]*db.Session, error) {
 		return nil, err
 	}
 
-	// Filter out expired sessions
 	var activeSessions []*db.Session
 	now := time.Now().UTC()
 	for _, session := range sessions {
@@ -164,6 +123,5 @@ func generateSecureToken(length int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return base64.URLEncoding.EncodeToString(bytes), nil
 }

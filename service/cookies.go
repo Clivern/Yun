@@ -35,12 +35,6 @@ type CookieOptions struct {
 }
 
 // DefaultCookieOptions returns sensible default options for cookies.
-//
-// Example:
-//
-//	opts := DefaultCookieOptions()
-//	opts.MaxAge = 3600 // 1 hour
-//	SetCookie(w, "session_token", "abc123", opts)
 func DefaultCookieOptions() *CookieOptions {
 	return &CookieOptions{
 		Path:     "/",
@@ -51,13 +45,6 @@ func DefaultCookieOptions() *CookieOptions {
 }
 
 // SecureCookieOptions returns secure cookie options for production use.
-// These options should be used when serving over HTTPS.
-//
-// Example:
-//
-//	opts := SecureCookieOptions()
-//	opts.MaxAge = 86400 // 24 hours
-//	SetCookie(w, "session_token", token, opts)
 func SecureCookieOptions() *CookieOptions {
 	return &CookieOptions{
 		Path:     "/",
@@ -68,12 +55,6 @@ func SecureCookieOptions() *CookieOptions {
 }
 
 // SetCookie sets a cookie with the given name, value, and options.
-//
-// Example:
-//
-//	opts := DefaultCookieOptions()
-//	opts.MaxAge = 3600 // 1 hour
-//	SetCookie(w, "user_preference", "dark_mode", opts)
 func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions) {
 	if options == nil {
 		options = DefaultCookieOptions()
@@ -90,7 +71,6 @@ func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions
 		SameSite: options.SameSite,
 	}
 
-	// If MaxAge is set, also set Expires for older browsers
 	if options.MaxAge > 0 {
 		cookie.Expires = time.Now().UTC().Add(time.Duration(options.MaxAge) * time.Second)
 	}
@@ -99,14 +79,6 @@ func SetCookie(w http.ResponseWriter, name, value string, options *CookieOptions
 }
 
 // GetCookie retrieves a cookie value by name.
-// Returns an empty string if the cookie is not found.
-//
-// Example:
-//
-//	token := GetCookie(r, "session_token")
-//	if token == "" {
-//		// No session cookie found
-//	}
 func GetCookie(r *http.Request, name string) string {
 	cookie, err := r.Cookie(name)
 	if err != nil {
@@ -116,22 +88,12 @@ func GetCookie(r *http.Request, name string) string {
 }
 
 // HasCookie checks if a cookie with the given name exists.
-//
-// Example:
-//
-//	if HasCookie(r, "session_token") {
-//		// User has an active session
-//	}
 func HasCookie(r *http.Request, name string) bool {
 	_, err := r.Cookie(name)
 	return err == nil
 }
 
 // DeleteCookie deletes a cookie by setting its MaxAge to -1.
-//
-// Example:
-//
-//	DeleteCookie(w, "session_token")
 func DeleteCookie(w http.ResponseWriter, name string) {
 	cookie := &http.Cookie{
 		Name:   name,
@@ -140,46 +102,4 @@ func DeleteCookie(w http.ResponseWriter, name string) {
 		MaxAge: -1,
 	}
 	http.SetCookie(w, cookie)
-}
-
-// DeleteCookieWithOptions deletes a cookie with specific path and domain.
-// This is useful when you need to delete cookies set with custom options.
-//
-// Example:
-//
-//	opts := &CookieOptions{
-//		Path:   "/api",
-//		Domain: "example.com",
-//	}
-//	DeleteCookieWithOptions(w, "api_token", opts)
-func DeleteCookieWithOptions(w http.ResponseWriter, name string, options *CookieOptions) {
-	if options == nil {
-		options = DefaultCookieOptions()
-	}
-
-	cookie := &http.Cookie{
-		Name:     name,
-		Value:    "",
-		Path:     options.Path,
-		Domain:   options.Domain,
-		MaxAge:   -1,
-		Expires:  time.Unix(0, 0),
-		Secure:   options.Secure,
-		HttpOnly: options.HTTPOnly,
-		SameSite: options.SameSite,
-	}
-
-	http.SetCookie(w, cookie)
-}
-
-// GetAllCookies returns all cookies from the request.
-//
-// Example:
-//
-//	cookies := GetAllCookies(r)
-//	for _, cookie := range cookies {
-//		fmt.Printf("%s: %s\n", cookie.Name, cookie.Value)
-//	}
-func GetAllCookies(r *http.Request) []*http.Cookie {
-	return r.Cookies()
 }

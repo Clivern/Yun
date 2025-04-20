@@ -10,9 +10,6 @@ import (
 )
 
 // Option represents a key-value option in the database.
-//
-// Options are stored in the options table and provide a flexible
-// way to store application settings and configuration values.
 type Option struct {
 	ID        int64
 	Key       string
@@ -22,31 +19,16 @@ type Option struct {
 }
 
 // OptionRepository handles database operations for options.
-//
-// It provides CRUD operations for the options table using the repository pattern.
 type OptionRepository struct {
 	db *sql.DB
 }
 
 // NewOptionRepository creates a new option repository.
-//
-// Example:
-//
-//	repo := db.NewOptionRepository(conn.DB)
 func NewOptionRepository(db *sql.DB) *OptionRepository {
 	return &OptionRepository{db: db}
 }
 
 // Create inserts a new option into the database.
-//
-// The key must be unique. If a key already exists, this will return an error.
-//
-// Example:
-//
-//	err := repo.Create("app_name", "Mut")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *OptionRepository) Create(key, value string) error {
 	_, err := r.db.Exec(
 		"INSERT INTO options (key, value) VALUES (?, ?)",
@@ -57,18 +39,6 @@ func (r *OptionRepository) Create(key, value string) error {
 }
 
 // Get retrieves an option by key.
-//
-// Returns nil if the option doesn't exist.
-//
-// Example:
-//
-//	opt, err := repo.Get("app_name")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	if opt != nil {
-//		fmt.Printf("Value: %s\n", opt.Value)
-//	}
 func (r *OptionRepository) Get(key string) (*Option, error) {
 	option := &Option{}
 	err := r.db.QueryRow(
@@ -94,15 +64,6 @@ func (r *OptionRepository) Get(key string) (*Option, error) {
 }
 
 // Update updates an option value.
-//
-// The updated_at timestamp is automatically set to the current time.
-//
-// Example:
-//
-//	err := repo.Update("app_name", "Mut v2")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *OptionRepository) Update(key, value string) error {
 	_, err := r.db.Exec(
 		`UPDATE options SET
@@ -116,31 +77,12 @@ func (r *OptionRepository) Update(key, value string) error {
 }
 
 // Delete removes an option from the database.
-//
-// Example:
-//
-//	err := repo.Delete("app_name")
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *OptionRepository) Delete(key string) error {
 	_, err := r.db.Exec("DELETE FROM options WHERE key = ?", key)
 	return err
 }
 
 // List retrieves all options from the database.
-//
-// Results are ordered by key alphabetically.
-//
-// Example:
-//
-//	options, err := repo.List()
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	for _, opt := range options {
-//		fmt.Printf("%s = %s\n", opt.Key, opt.Value)
-//	}
 func (r *OptionRepository) List() ([]*Option, error) {
 	rows, err := r.db.Query("SELECT id, key, value, created_at, updated_at FROM options ORDER BY key")
 	if err != nil {

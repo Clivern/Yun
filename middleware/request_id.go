@@ -21,21 +21,16 @@ const RequestIDKey contextKey = "request_id"
 // It checks for existing X-Request-ID header, or generates a new UUID
 func RequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Try to get request ID from header
 		requestID := r.Header.Get("X-Request-ID")
 
-		// If not present, generate a new UUID
 		if requestID == "" {
 			requestID = uuid.New().String()
 		}
 
-		// Add request ID to response header
 		w.Header().Set("X-Request-ID", requestID)
 
-		// Add request ID to context
 		ctx := context.WithValue(r.Context(), RequestIDKey, requestID)
 
-		// Call next handler with updated context
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

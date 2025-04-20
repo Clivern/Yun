@@ -54,7 +54,6 @@ func setupSessionTestDB(t *testing.T) *sql.DB {
 
 func TestUnitSessionRepository_Create(t *testing.T) {
 	t.Run("Create session successfully", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -80,16 +79,12 @@ func TestUnitSessionRepository_Create(t *testing.T) {
 			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 
-		// Act
 		err = sessionRepo.Create(session)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.NotZero(t, session.ID)
 	})
 
 	t.Run("Create session without optional fields", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -111,10 +106,7 @@ func TestUnitSessionRepository_Create(t *testing.T) {
 			ExpiresAt: time.Now().UTC().Add(24 * time.Hour),
 		}
 
-		// Act
 		err = sessionRepo.Create(session)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.NotZero(t, session.ID)
 	})
@@ -122,7 +114,6 @@ func TestUnitSessionRepository_Create(t *testing.T) {
 
 func TestUnitSessionRepository_GetByToken(t *testing.T) {
 	t.Run("Get existing session by token", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -146,10 +137,7 @@ func TestUnitSessionRepository_GetByToken(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		retrieved, err := sessionRepo.GetByToken("unique-token")
-
-		// Assert
 		assert.NoError(t, err)
 		assert.NotNil(t, retrieved)
 		assert.Equal(t, session.Token, retrieved.Token)
@@ -157,16 +145,12 @@ func TestUnitSessionRepository_GetByToken(t *testing.T) {
 	})
 
 	t.Run("Get non-existent session returns nil", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
 		sessionRepo := NewSessionRepository(db)
 
-		// Act
 		retrieved, err := sessionRepo.GetByToken("non-existent-token")
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Nil(t, retrieved)
 	})
@@ -174,7 +158,6 @@ func TestUnitSessionRepository_GetByToken(t *testing.T) {
 
 func TestUnitSessionRepository_GetByID(t *testing.T) {
 	t.Run("Get existing session by ID", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -198,10 +181,7 @@ func TestUnitSessionRepository_GetByID(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		retrieved, err := sessionRepo.GetByID(session.ID)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.NotNil(t, retrieved)
 		assert.Equal(t, session.ID, retrieved.ID)
@@ -209,16 +189,12 @@ func TestUnitSessionRepository_GetByID(t *testing.T) {
 	})
 
 	t.Run("Get non-existent session by ID returns nil", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
 		sessionRepo := NewSessionRepository(db)
 
-		// Act
 		retrieved, err := sessionRepo.GetByID(999)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Nil(t, retrieved)
 	})
@@ -226,7 +202,6 @@ func TestUnitSessionRepository_GetByID(t *testing.T) {
 
 func TestUnitSessionRepository_GetByUserID(t *testing.T) {
 	t.Run("Get all sessions for a user", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -242,7 +217,6 @@ func TestUnitSessionRepository_GetByUserID(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create multiple sessions
 		for i := 0; i < 3; i++ {
 			session := &Session{
 				Token:     "token-" + string(rune(i)),
@@ -253,16 +227,12 @@ func TestUnitSessionRepository_GetByUserID(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// Act
 		sessions, err := sessionRepo.GetByUserID(user.ID)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Len(t, sessions, 3)
 	})
 
 	t.Run("Get sessions for user with no sessions", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -278,10 +248,7 @@ func TestUnitSessionRepository_GetByUserID(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Act
 		sessions, err := sessionRepo.GetByUserID(user.ID)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Empty(t, sessions)
 	})
@@ -289,7 +256,6 @@ func TestUnitSessionRepository_GetByUserID(t *testing.T) {
 
 func TestUnitSessionRepository_Delete(t *testing.T) {
 	t.Run("Delete existing session", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -313,10 +279,7 @@ func TestUnitSessionRepository_Delete(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		err = sessionRepo.Delete(session.ID)
-
-		// Assert
 		assert.NoError(t, err)
 
 		retrieved, err := sessionRepo.GetByID(session.ID)
@@ -327,7 +290,6 @@ func TestUnitSessionRepository_Delete(t *testing.T) {
 
 func TestUnitSessionRepository_DeleteByToken(t *testing.T) {
 	t.Run("Delete session by token", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -351,10 +313,7 @@ func TestUnitSessionRepository_DeleteByToken(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		err = sessionRepo.DeleteByToken("test-token")
-
-		// Assert
 		assert.NoError(t, err)
 
 		retrieved, err := sessionRepo.GetByToken("test-token")
@@ -365,7 +324,6 @@ func TestUnitSessionRepository_DeleteByToken(t *testing.T) {
 
 func TestUnitSessionRepository_DeleteByUserID(t *testing.T) {
 	t.Run("Delete all sessions for a user", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -381,7 +339,6 @@ func TestUnitSessionRepository_DeleteByUserID(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create multiple sessions
 		for i := 0; i < 3; i++ {
 			session := &Session{
 				Token:     "token-" + string(rune(i)),
@@ -392,10 +349,7 @@ func TestUnitSessionRepository_DeleteByUserID(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// Act
 		err = sessionRepo.DeleteByUserID(user.ID)
-
-		// Assert
 		assert.NoError(t, err)
 
 		sessions, err := sessionRepo.GetByUserID(user.ID)
@@ -406,7 +360,6 @@ func TestUnitSessionRepository_DeleteByUserID(t *testing.T) {
 
 func TestUnitSessionRepository_DeleteExpired(t *testing.T) {
 	t.Run("Delete expired sessions", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -422,7 +375,6 @@ func TestUnitSessionRepository_DeleteExpired(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create expired session
 		expiredSession := &Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
@@ -431,7 +383,6 @@ func TestUnitSessionRepository_DeleteExpired(t *testing.T) {
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
 
-		// Create active session
 		activeSession := &Session{
 			Token:     "active-token",
 			UserID:    user.ID,
@@ -440,19 +391,14 @@ func TestUnitSessionRepository_DeleteExpired(t *testing.T) {
 		err = sessionRepo.Create(activeSession)
 		assert.NoError(t, err)
 
-		// Act
 		deleted, err := sessionRepo.DeleteExpired()
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), deleted)
 
-		// Verify expired session is gone
 		retrieved, err := sessionRepo.GetByToken("expired-token")
 		assert.NoError(t, err)
 		assert.Nil(t, retrieved)
 
-		// Verify active session still exists
 		retrieved, err = sessionRepo.GetByToken("active-token")
 		assert.NoError(t, err)
 		assert.NotNil(t, retrieved)
@@ -461,7 +407,6 @@ func TestUnitSessionRepository_DeleteExpired(t *testing.T) {
 
 func TestUnitSessionRepository_IsValid(t *testing.T) {
 	t.Run("Valid non-expired session", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -485,16 +430,12 @@ func TestUnitSessionRepository_IsValid(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		isValid, err := sessionRepo.IsValid("valid-token")
-
-		// Assert
 		assert.NoError(t, err)
 		assert.True(t, isValid)
 	})
 
 	t.Run("Expired session is invalid", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -518,25 +459,17 @@ func TestUnitSessionRepository_IsValid(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		isValid, err := sessionRepo.IsValid("expired-token")
-
-		// Assert
 		assert.NoError(t, err)
 		assert.False(t, isValid)
 	})
 
 	t.Run("Non-existent session is invalid", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
 		sessionRepo := NewSessionRepository(db)
-
-		// Act
 		isValid, err := sessionRepo.IsValid("non-existent")
-
-		// Assert
 		assert.NoError(t, err)
 		assert.False(t, isValid)
 	})
@@ -544,7 +477,6 @@ func TestUnitSessionRepository_IsValid(t *testing.T) {
 
 func TestUnitSessionRepository_UpdateExpiration(t *testing.T) {
 	t.Run("Update session expiration", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -571,10 +503,7 @@ func TestUnitSessionRepository_UpdateExpiration(t *testing.T) {
 
 		newExpiration := time.Now().UTC().Add(48 * time.Hour)
 
-		// Act
 		err = sessionRepo.UpdateExpiration(session.ID, newExpiration)
-
-		// Assert
 		assert.NoError(t, err)
 
 		retrieved, err := sessionRepo.GetByID(session.ID)
@@ -586,7 +515,6 @@ func TestUnitSessionRepository_UpdateExpiration(t *testing.T) {
 
 func TestUnitSessionRepository_Count(t *testing.T) {
 	t.Run("Count active sessions", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -602,7 +530,6 @@ func TestUnitSessionRepository_Count(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create active sessions
 		for i := 0; i < 2; i++ {
 			session := &Session{
 				Token:     "active-token-" + string(rune(i)),
@@ -613,7 +540,6 @@ func TestUnitSessionRepository_Count(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// Create expired session
 		expiredSession := &Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
@@ -621,11 +547,7 @@ func TestUnitSessionRepository_Count(t *testing.T) {
 		}
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
-
-		// Act
 		count, err := sessionRepo.Count()
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 	})
@@ -633,7 +555,6 @@ func TestUnitSessionRepository_Count(t *testing.T) {
 
 func TestUnitSessionRepository_CountByUserID(t *testing.T) {
 	t.Run("Count active sessions for user", func(t *testing.T) {
-		// Arrange
 		db := setupSessionTestDB(t)
 		defer db.Close()
 
@@ -660,7 +581,6 @@ func TestUnitSessionRepository_CountByUserID(t *testing.T) {
 		err = userRepo.Create(user2)
 		assert.NoError(t, err)
 
-		// Create sessions for user1
 		for i := 0; i < 2; i++ {
 			session := &Session{
 				Token:     "user1-token-" + string(rune(i)),
@@ -671,7 +591,6 @@ func TestUnitSessionRepository_CountByUserID(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// Create session for user2
 		session := &Session{
 			Token:     "user2-token",
 			UserID:    user2.ID,
@@ -680,10 +599,7 @@ func TestUnitSessionRepository_CountByUserID(t *testing.T) {
 		err = sessionRepo.Create(session)
 		assert.NoError(t, err)
 
-		// Act
 		count, err := sessionRepo.CountByUserID(user1.ID)
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 	})

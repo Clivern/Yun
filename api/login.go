@@ -46,14 +46,9 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sessionManager := module.NewSessionManager(sessionRepo, userRepo)
-	duration := time.Hour * 24
-	if req.RememberMe {
-		duration = time.Hour * 24 * 30
-	}
-
 	session, err := sessionManager.CreateSession(
 		user.ID,
-		duration,
+		time.Hour*24*7,
 		r.RemoteAddr,
 		r.UserAgent(),
 	)
@@ -64,15 +59,18 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set cookie with MaxAge matching session duration
-	// Use secure cookies only when TLS is enabled
 	var cookieOptions *service.CookieOptions
 	if viper.GetBool("app.tls.status") {
 		cookieOptions = service.SecureCookieOptions()
 	} else {
 		cookieOptions = service.DefaultCookieOptions()
 	}
-	cookieOptions.MaxAge = int(duration.Seconds())
+	if req.RememberMe {
+		cookieOptions.MaxAge = int((time.Hour * 24 * 30) / time.Second)
+	} else {
+		cookieOptions.MaxAge = 0
+	}
+
 	service.SetCookie(w, "_mut_session", session.Token, cookieOptions)
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"successMessage": "Login successful",

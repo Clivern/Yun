@@ -20,7 +20,6 @@ var (
 )
 
 // InitDB initializes the global database connection
-// This should be called once at application startup
 func InitDB(config Config) error {
 	mu.Lock()
 	defer mu.Unlock()
@@ -41,7 +40,6 @@ func InitDB(config Config) error {
 }
 
 // GetDB returns the global database connection
-// Panics if the database has not been initialized
 func GetDB() *sql.DB {
 	mu.RLock()
 	defer mu.RUnlock()
@@ -55,7 +53,6 @@ func GetDB() *sql.DB {
 }
 
 // CloseDB closes the global database connection
-// This should be called at application shutdown
 func CloseDB() error {
 	mu.Lock()
 	defer mu.Unlock()

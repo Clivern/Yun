@@ -28,11 +28,9 @@ func (a *Auth) Login(email, password string) (*db.User, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if user == nil {
 		return nil, errors.New("Email not found")
 	}
-
 	if !service.ComparePassword(user.Password, password) {
 		return nil, errors.New("Invalid password")
 	}

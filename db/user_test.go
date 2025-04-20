@@ -82,7 +82,6 @@ func TestUnitUserRepository_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Greater(t, user.ID, int64(0), "User ID should be set after creation")
 
-		// Verify user was created
 		fetched, err := repo.GetByID(user.ID)
 		assert.NoError(t, err)
 		assert.NotNil(t, fetched)
@@ -210,7 +209,6 @@ func TestUnitUserRepository_GetByEmail(t *testing.T) {
 	repo := NewUserRepository(conn.DB)
 
 	t.Run("Get existing user by email", func(t *testing.T) {
-		// Create test user
 		user := &User{
 			Email:    "email@example.com",
 			Password: "password",
@@ -220,7 +218,6 @@ func TestUnitUserRepository_GetByEmail(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Get by email
 		fetched, err := repo.GetByEmail("email@example.com")
 		assert.NoError(t, err)
 		assert.NotNil(t, fetched)
@@ -244,10 +241,8 @@ func TestUnitUserRepository_GetByEmail(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Try to get with different case
 		_, err = repo.GetByEmail("casesensitive@example.com")
 		assert.NoError(t, err)
-		// Note: SQLite is case-insensitive by default, but this documents the behavior
 	})
 }
 
@@ -269,7 +264,6 @@ func TestUnitUserRepository_GetByAPIKey(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Get by API key
 		fetched, err := repo.GetByAPIKey(apiKey)
 		assert.NoError(t, err)
 		assert.NotNil(t, fetched)
@@ -308,7 +302,6 @@ func TestUnitUserRepository_Update(t *testing.T) {
 	repo := NewUserRepository(conn.DB)
 
 	t.Run("Update user fields", func(t *testing.T) {
-		// Create user
 		user := &User{
 			Email:    "update@example.com",
 			Password: "old_password",
@@ -318,7 +311,6 @@ func TestUnitUserRepository_Update(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Update fields
 		user.Email = "newemail@example.com"
 		user.Password = "new_password"
 		user.Role = "admin"
@@ -326,7 +318,6 @@ func TestUnitUserRepository_Update(t *testing.T) {
 		err = repo.Update(user)
 		assert.NoError(t, err)
 
-		// Verify update
 		fetched, err := repo.GetByID(user.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, "newemail@example.com", fetched.Email)
@@ -344,7 +335,6 @@ func TestUnitUserRepository_Update(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Add API key
 		newAPIKey := "new-api-key-xyz"
 		user.APIKey = newAPIKey
 		err = repo.Update(user)
@@ -385,18 +375,15 @@ func TestUnitUserRepository_Update(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Get initial timestamp
 		initial, err := repo.GetByID(user.ID)
 		require.NoError(t, err)
 		initialUpdatedAt := initial.UpdatedAt
 
-		// Wait and update
 		time.Sleep(10 * time.Millisecond)
 		user.Email = "newtimestamp@example.com"
 		err = repo.Update(user)
 		assert.NoError(t, err)
 
-		// Verify timestamp changed
 		updated, err := repo.GetByID(user.ID)
 		assert.NoError(t, err)
 		assert.True(t, updated.UpdatedAt.After(initialUpdatedAt))
@@ -419,18 +406,15 @@ func TestUnitUserRepository_UpdateLastLogin(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Initially no last login
 		fetched, err := repo.GetByID(user.ID)
 		require.NoError(t, err)
 		assert.True(t, fetched.LastLoginAt.IsZero())
 
-		// Update last login
 		beforeUpdate := time.Now().UTC()
 		err = repo.UpdateLastLogin(user.ID)
 		assert.NoError(t, err)
 		afterUpdate := time.Now().UTC()
 
-		// Verify last login was set
 		fetched, err = repo.GetByID(user.ID)
 		assert.NoError(t, err)
 		assert.False(t, fetched.LastLoginAt.IsZero())
@@ -448,7 +432,6 @@ func TestUnitUserRepository_UpdateLastLogin(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// First login
 		err = repo.UpdateLastLogin(user.ID)
 		require.NoError(t, err)
 
@@ -456,7 +439,6 @@ func TestUnitUserRepository_UpdateLastLogin(t *testing.T) {
 		require.NoError(t, err)
 		firstLogin := first.LastLoginAt
 
-		// Wait and login again
 		time.Sleep(10 * time.Millisecond)
 		err = repo.UpdateLastLogin(user.ID)
 		assert.NoError(t, err)
@@ -484,16 +466,13 @@ func TestUnitUserRepository_Delete(t *testing.T) {
 		err := repo.Create(user)
 		require.NoError(t, err)
 
-		// Verify user exists
 		fetched, err := repo.GetByID(user.ID)
 		assert.NoError(t, err)
 		assert.NotNil(t, fetched)
 
-		// Delete user
 		err = repo.Delete(user.ID)
 		assert.NoError(t, err)
 
-		// Verify user is gone
 		fetched, err = repo.GetByID(user.ID)
 		assert.NoError(t, err)
 		assert.Nil(t, fetched)
@@ -516,11 +495,9 @@ func TestUnitUserRepository_Delete(t *testing.T) {
 		require.NoError(t, err)
 		firstID := user.ID
 
-		// Delete
 		err = repo.Delete(user.ID)
 		assert.NoError(t, err)
 
-		// Recreate with same email
 		newUser := &User{
 			Email:    email,
 			Password: "password2",
@@ -546,7 +523,6 @@ func TestUnitUserRepository_List(t *testing.T) {
 	})
 
 	t.Run("List all users", func(t *testing.T) {
-		// Create test users
 		for i := 1; i <= 5; i++ {
 			user := &User{
 				Email:    "user" + string(rune('0'+i)) + "@example.com",
@@ -556,16 +532,13 @@ func TestUnitUserRepository_List(t *testing.T) {
 			}
 			err := repo.Create(user)
 			require.NoError(t, err)
-			// Add small delay to ensure different created_at times
 			time.Sleep(time.Millisecond)
 		}
 
-		// List all
 		users, err := repo.List(10, 0)
 		assert.NoError(t, err)
 		assert.Len(t, users, 5)
 
-		// Verify ordered by created_at DESC (newest first)
 		for i := 0; i < len(users)-1; i++ {
 			assert.True(t, users[i].CreatedAt.After(users[i+1].CreatedAt) ||
 				users[i].CreatedAt.Equal(users[i+1].CreatedAt))
@@ -573,10 +546,8 @@ func TestUnitUserRepository_List(t *testing.T) {
 	})
 
 	t.Run("List with pagination", func(t *testing.T) {
-		// Clear previous data
 		conn.DB.Exec("DELETE FROM users")
 
-		// Create 10 users
 		for i := 1; i <= 10; i++ {
 			user := &User{
 				Email:    "page" + string(rune('0'+i)) + "@example.com",
@@ -589,17 +560,14 @@ func TestUnitUserRepository_List(t *testing.T) {
 			time.Sleep(time.Millisecond)
 		}
 
-		// Get first page
 		page1, err := repo.List(3, 0)
 		assert.NoError(t, err)
 		assert.Len(t, page1, 3)
 
-		// Get second page
 		page2, err := repo.List(3, 3)
 		assert.NoError(t, err)
 		assert.Len(t, page2, 3)
 
-		// Ensure different users
 		assert.NotEqual(t, page1[0].ID, page2[0].ID)
 	})
 
@@ -629,7 +597,6 @@ func TestUnitUserRepository_Count(t *testing.T) {
 	})
 
 	t.Run("Count users", func(t *testing.T) {
-		// Create users
 		for i := 1; i <= 7; i++ {
 			user := &User{
 				Email:    "count" + string(rune('0'+i)) + "@example.com",
@@ -647,11 +614,9 @@ func TestUnitUserRepository_Count(t *testing.T) {
 	})
 
 	t.Run("Count after deletion", func(t *testing.T) {
-		// Get initial count
 		initialCount, err := repo.Count()
 		require.NoError(t, err)
 
-		// Create and delete a user
 		user := &User{
 			Email:    "countdelete@example.com",
 			Password: "password",
@@ -682,7 +647,6 @@ func TestUnitUserMetaRepository_Create(t *testing.T) {
 	metaRepo := NewUserMetaRepository(conn.DB)
 
 	t.Run("Create user metadata", func(t *testing.T) {
-		// Create user first
 		user := &User{
 			Email:    "meta@example.com",
 			Password: "password",
@@ -692,11 +656,9 @@ func TestUnitUserMetaRepository_Create(t *testing.T) {
 		err := userRepo.Create(user)
 		require.NoError(t, err)
 
-		// Create metadata
 		err = metaRepo.Create(user.ID, "theme", "dark")
 		assert.NoError(t, err)
 
-		// Verify
 		meta, err := metaRepo.Get(user.ID, "theme")
 		assert.NoError(t, err)
 		assert.NotNil(t, meta)
@@ -727,7 +689,6 @@ func TestUnitUserMetaRepository_Create(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// Verify all created
 		for key, expectedValue := range metadata {
 			meta, err := metaRepo.Get(user.ID, key)
 			assert.NoError(t, err)
@@ -823,15 +784,12 @@ func TestUnitUserMetaRepository_Update(t *testing.T) {
 		err := userRepo.Create(user)
 		require.NoError(t, err)
 
-		// Create initial metadata
 		err = metaRepo.Create(user.ID, "status", "online")
 		require.NoError(t, err)
 
-		// Update
 		err = metaRepo.Update(user.ID, "status", "offline")
 		assert.NoError(t, err)
 
-		// Verify
 		meta, err := metaRepo.Get(user.ID, "status")
 		assert.NoError(t, err)
 		assert.Equal(t, "offline", meta.Value)
@@ -877,7 +835,6 @@ func TestUnitUserMetaRepository_Update(t *testing.T) {
 		err = metaRepo.Update(user.ID, "nonexistent", "value")
 		assert.NoError(t, err)
 
-		// Verify not created
 		meta, err := metaRepo.Get(user.ID, "nonexistent")
 		assert.NoError(t, err)
 		assert.Nil(t, meta)
@@ -904,16 +861,13 @@ func TestUnitUserMetaRepository_Delete(t *testing.T) {
 		err = metaRepo.Create(user.ID, "temp", "value")
 		require.NoError(t, err)
 
-		// Verify exists
 		meta, err := metaRepo.Get(user.ID, "temp")
 		assert.NoError(t, err)
 		assert.NotNil(t, meta)
 
-		// Delete
 		err = metaRepo.Delete(user.ID, "temp")
 		assert.NoError(t, err)
 
-		// Verify deleted
 		meta, err = metaRepo.Get(user.ID, "temp")
 		assert.NoError(t, err)
 		assert.Nil(t, meta)
@@ -966,7 +920,6 @@ func TestUnitUserMetaRepository_ListByUser(t *testing.T) {
 		err := userRepo.Create(user)
 		require.NoError(t, err)
 
-		// Create multiple metadata entries
 		testData := map[string]string{
 			"pref_theme":    "dark",
 			"pref_lang":     "en",
@@ -979,17 +932,14 @@ func TestUnitUserMetaRepository_ListByUser(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		// List all
 		metadata, err := metaRepo.ListByUser(user.ID)
 		assert.NoError(t, err)
 		assert.Len(t, metadata, len(testData))
 
-		// Verify all keys present and sorted
 		for i, meta := range metadata {
 			assert.Equal(t, testData[meta.Key], meta.Value)
 			assert.Equal(t, user.ID, meta.UserID)
 
-			// Check alphabetical order
 			if i > 0 {
 				assert.True(t, metadata[i-1].Key < metadata[i].Key,
 					"Metadata should be sorted by key")
@@ -1016,17 +966,14 @@ func TestUnitUserMetaRepository_ListByUser(t *testing.T) {
 		err = userRepo.Create(user2)
 		require.NoError(t, err)
 
-		// Create metadata for both users
 		metaRepo.Create(user1.ID, "key1", "value1")
 		metaRepo.Create(user2.ID, "key2", "value2")
 
-		// List for user1
 		metadata1, err := metaRepo.ListByUser(user1.ID)
 		assert.NoError(t, err)
 		assert.Len(t, metadata1, 1)
 		assert.Equal(t, "key1", metadata1[0].Key)
 
-		// List for user2
 		metadata2, err := metaRepo.ListByUser(user2.ID)
 		assert.NoError(t, err)
 		assert.Len(t, metadata2, 1)
@@ -1070,11 +1017,9 @@ func TestUnitUserMetaRepository_Upsert(t *testing.T) {
 		err := userRepo.Create(user)
 		require.NoError(t, err)
 
-		// Create initial
 		err = metaRepo.Create(user.ID, "existing", "initial")
 		require.NoError(t, err)
 
-		// Upsert should update
 		err = metaRepo.Upsert(user.ID, "existing", "updated")
 		assert.NoError(t, err)
 
@@ -1093,11 +1038,9 @@ func TestUnitUserMetaRepository_Upsert(t *testing.T) {
 		err := userRepo.Create(user)
 		require.NoError(t, err)
 
-		// First upsert - creates
 		err = metaRepo.Upsert(user.ID, "counter", "1")
 		assert.NoError(t, err)
 
-		// Subsequent upserts - update
 		for i := 2; i <= 5; i++ {
 			err = metaRepo.Upsert(user.ID, "counter", string(rune('0'+i)))
 			assert.NoError(t, err)
@@ -1107,7 +1050,6 @@ func TestUnitUserMetaRepository_Upsert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "5", meta.Value)
 
-		// Verify only one record exists
 		allMeta, err := metaRepo.ListByUser(user.ID)
 		assert.NoError(t, err)
 		countEntries := 0

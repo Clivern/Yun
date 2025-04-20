@@ -15,17 +15,14 @@ import (
 
 func TestUnitWriteJSON(t *testing.T) {
 	t.Run("WriteJSON with map data and 200 status", func(t *testing.T) {
-		// Arrange
 		w := httptest.NewRecorder()
 		data := map[string]interface{}{
 			"status":  "ok",
 			"message": "test message",
 		}
 
-		// Act
 		WriteJSON(w, http.StatusOK, data)
 
-		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
@@ -37,7 +34,6 @@ func TestUnitWriteJSON(t *testing.T) {
 	})
 
 	t.Run("WriteJSON with struct data and 201 status", func(t *testing.T) {
-		// Arrange
 		type TestStruct struct {
 			ID   int    `json:"id"`
 			Name string `json:"name"`
@@ -49,10 +45,8 @@ func TestUnitWriteJSON(t *testing.T) {
 			Name: "Test User",
 		}
 
-		// Act
 		WriteJSON(w, http.StatusCreated, data)
 
-		// Assert
 		assert.Equal(t, http.StatusCreated, w.Code)
 		assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 
@@ -88,13 +82,10 @@ func TestUnitWriteJSON(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				// Arrange
 				w := httptest.NewRecorder()
 
-				// Act
 				WriteJSON(w, tc.statusCode, tc.data)
 
-				// Assert
 				assert.Equal(t, tc.statusCode, w.Code)
 				assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 			})
@@ -102,14 +93,11 @@ func TestUnitWriteJSON(t *testing.T) {
 	})
 
 	t.Run("WriteJSON with empty data", func(t *testing.T) {
-		// Arrange
 		w := httptest.NewRecorder()
 		data := map[string]interface{}{}
 
-		// Act
 		WriteJSON(w, http.StatusOK, data)
 
-		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var response map[string]interface{}
@@ -119,7 +107,6 @@ func TestUnitWriteJSON(t *testing.T) {
 	})
 
 	t.Run("WriteJSON with nested data", func(t *testing.T) {
-		// Arrange
 		w := httptest.NewRecorder()
 		data := map[string]interface{}{
 			"user": map[string]interface{}{
@@ -132,10 +119,8 @@ func TestUnitWriteJSON(t *testing.T) {
 			"timestamp": "2023-01-01T00:00:00Z",
 		}
 
-		// Act
 		WriteJSON(w, http.StatusOK, data)
 
-		// Assert
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		var response map[string]interface{}

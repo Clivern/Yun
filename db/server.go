@@ -10,21 +10,12 @@ import (
 )
 
 // Server represents a virtual MCP server in the database.
-//
-// A server is a virtual entity that aggregates tools, resources, and prompts
-// from multiple MCP backend connections.
 type Server struct {
-	ID              int64
-	Name            string
-	Slug            string
-	Description     string
-	EnableTools     bool
-	EnableResources bool
-	EnablePrompts   bool
-	Tags            string
-	CreatedBy       *int64
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID   int64
+	Name string
+	// TODO: Add fields for server
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 // ServerRepository handles database operations for servers.
@@ -35,225 +26,6 @@ type ServerRepository struct {
 // NewServerRepository creates a new server repository.
 func NewServerRepository(db *sql.DB) *ServerRepository {
 	return &ServerRepository{db: db}
-}
-
-// Create inserts a new server into the database.
-//
-// Example:
-//
-//	server := &Server{
-//		Name:        "My Server",
-//		Slug:        "my-server",
-//		Description: "A virtual server",
-//		IsPublic:    true,
-//	}
-//	err := repo.Create(server)
-func (r *ServerRepository) Create(server *Server) error {
-	result, err := r.db.Exec(
-		`INSERT INTO servers (
-			name, slug, description,
-			enable_tools, enable_resources, enable_prompts, tags, created_by
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		server.Name,
-		server.Slug,
-		server.Description,
-		server.EnableTools,
-		server.EnableResources,
-		server.EnablePrompts,
-		server.Tags,
-		server.CreatedBy,
-	)
-	if err != nil {
-		return err
-	}
-
-	server.ID, err = result.LastInsertId()
-	return err
-}
-
-// GetByID retrieves a server by ID.
-func (r *ServerRepository) GetByID(id int64) (*Server, error) {
-	server := &Server{}
-	err := r.db.QueryRow(
-		`SELECT
-			id, name, slug, description, enable_tools,
-			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers
-		WHERE id = ?`,
-		id,
-	).Scan(
-		&server.ID,
-		&server.Name,
-		&server.Slug,
-		&server.Description,
-		&server.EnableTools,
-		&server.EnableResources,
-		&server.EnablePrompts,
-		&server.Tags,
-		&server.CreatedBy,
-		&server.CreatedAt,
-		&server.UpdatedAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return server, nil
-}
-
-// GetBySlug retrieves a server by slug.
-func (r *ServerRepository) GetBySlug(slug string) (*Server, error) {
-	server := &Server{}
-	err := r.db.QueryRow(
-		`SELECT
-			id, name, slug, description, enable_tools,
-			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers
-		WHERE slug = ?`,
-		slug,
-	).Scan(
-		&server.ID,
-		&server.Name,
-		&server.Slug,
-		&server.Description,
-		&server.EnableTools,
-		&server.EnableResources,
-		&server.EnablePrompts,
-		&server.Tags,
-		&server.CreatedBy,
-		&server.CreatedAt,
-		&server.UpdatedAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return server, nil
-}
-
-// Update updates a server's information.
-func (r *ServerRepository) Update(server *Server) error {
-	_, err := r.db.Exec(
-		`UPDATE servers SET
-			name = ?, slug = ?, description = ?, enable_tools = ?, enable_resources = ?, enable_prompts = ?,
-			tags = ?, updated_at = ?
-		WHERE id = ?`,
-		server.Name,
-		server.Slug,
-		server.Description,
-		server.EnableTools,
-		server.EnableResources,
-		server.EnablePrompts,
-		server.Tags,
-		time.Now().UTC(),
-		server.ID,
-	)
-	return err
-}
-
-// Delete removes a server from the database.
-func (r *ServerRepository) Delete(id int64) error {
-	_, err := r.db.Exec("DELETE FROM servers WHERE id = ?", id)
-	return err
-}
-
-// List retrieves all servers with pagination.
-func (r *ServerRepository) List(limit, offset int) ([]*Server, error) {
-	rows, err := r.db.Query(
-		`SELECT
-			id, name, slug, description, enable_tools,
-			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers
-		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?`,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var servers []*Server
-	for rows.Next() {
-		server := &Server{}
-		if err := rows.Scan(
-			&server.ID,
-			&server.Name,
-			&server.Slug,
-			&server.Description,
-			&server.EnableTools,
-			&server.EnableResources,
-			&server.EnablePrompts,
-			&server.Tags,
-			&server.CreatedBy,
-			&server.CreatedAt,
-			&server.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		servers = append(servers, server)
-	}
-
-	return servers, rows.Err()
-}
-
-// ListByCreator retrieves all servers created by a specific user.
-func (r *ServerRepository) ListByCreator(userID int64, limit, offset int) ([]*Server, error) {
-	rows, err := r.db.Query(
-		`SELECT
-			id, name, slug, description, enable_tools,
-			enable_resources, enable_prompts, tags, created_by, created_at, updated_at
-		FROM servers
-		WHERE created_by = ?
-		ORDER BY created_at DESC
-		LIMIT ? OFFSET ?`,
-		userID,
-		limit,
-		offset,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var servers []*Server
-	for rows.Next() {
-		server := &Server{}
-		if err := rows.Scan(
-			&server.ID,
-			&server.Name,
-			&server.Slug,
-			&server.Description,
-			&server.EnableTools,
-			&server.EnableResources,
-			&server.EnablePrompts,
-			&server.Tags,
-			&server.CreatedBy,
-			&server.CreatedAt,
-			&server.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		servers = append(servers, server)
-	}
-
-	return servers, rows.Err()
-}
-
-// Count returns the total number of servers.
-func (r *ServerRepository) Count() (int64, error) {
-	var count int64
-	err := r.db.QueryRow("SELECT COUNT(*) FROM servers").Scan(&count)
-	return count, err
 }
 
 // ServerMeta represents metadata associated with a server.
@@ -404,13 +176,6 @@ func NewServerToolRepository(db *sql.DB) *ServerToolRepository {
 }
 
 // AddTool associates a tool with a server.
-//
-// Example:
-//
-//	err := repo.AddTool(1, 5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerToolRepository) AddTool(serverID, toolID int64) error {
 	_, err := r.db.Exec(
 		"INSERT INTO server_tools (server_id, tool_id) VALUES (?, ?)",
@@ -421,13 +186,6 @@ func (r *ServerToolRepository) AddTool(serverID, toolID int64) error {
 }
 
 // RemoveTool removes a tool association from a server.
-//
-// Example:
-//
-//	err := repo.RemoveTool(1, 5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerToolRepository) RemoveTool(serverID, toolID int64) error {
 	_, err := r.db.Exec(
 		"DELETE FROM server_tools WHERE server_id = ? AND tool_id = ?",
@@ -438,13 +196,6 @@ func (r *ServerToolRepository) RemoveTool(serverID, toolID int64) error {
 }
 
 // GetToolsByServer retrieves all tool IDs associated with a server.
-//
-// Example:
-//
-//	toolIDs, err := repo.GetToolsByServer(1)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerToolRepository) GetToolsByServer(serverID int64) ([]int64, error) {
 	rows, err := r.db.Query(
 		"SELECT tool_id FROM server_tools WHERE server_id = ?",
@@ -470,13 +221,6 @@ func (r *ServerToolRepository) GetToolsByServer(serverID int64) ([]int64, error)
 }
 
 // GetServersByTool retrieves all server IDs that use a specific tool.
-//
-// Example:
-//
-//	serverIDs, err := repo.GetServersByTool(5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerToolRepository) GetServersByTool(toolID int64) ([]int64, error) {
 	rows, err := r.db.Query(
 		"SELECT server_id FROM server_tools WHERE tool_id = ?",
@@ -502,13 +246,6 @@ func (r *ServerToolRepository) GetServersByTool(toolID int64) ([]int64, error) {
 }
 
 // RemoveAllToolsFromServer removes all tool associations from a server.
-//
-// Example:
-//
-//	err := repo.RemoveAllToolsFromServer(1)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerToolRepository) RemoveAllToolsFromServer(serverID int64) error {
 	_, err := r.db.Exec(
 		"DELETE FROM server_tools WHERE server_id = ?",
@@ -535,13 +272,6 @@ func NewServerResourceRepository(db *sql.DB) *ServerResourceRepository {
 }
 
 // AddResource associates a resource with a server.
-//
-// Example:
-//
-//	err := repo.AddResource(1, 5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerResourceRepository) AddResource(serverID, resourceID int64) error {
 	_, err := r.db.Exec(
 		"INSERT INTO server_resources (server_id, resource_id) VALUES (?, ?)",
@@ -552,13 +282,6 @@ func (r *ServerResourceRepository) AddResource(serverID, resourceID int64) error
 }
 
 // RemoveResource removes a resource association from a server.
-//
-// Example:
-//
-//	err := repo.RemoveResource(1, 5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerResourceRepository) RemoveResource(serverID, resourceID int64) error {
 	_, err := r.db.Exec(
 		"DELETE FROM server_resources WHERE server_id = ? AND resource_id = ?",
@@ -569,13 +292,6 @@ func (r *ServerResourceRepository) RemoveResource(serverID, resourceID int64) er
 }
 
 // GetResourcesByServer retrieves all resource IDs associated with a server.
-//
-// Example:
-//
-//	resourceIDs, err := repo.GetResourcesByServer(1)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerResourceRepository) GetResourcesByServer(serverID int64) ([]int64, error) {
 	rows, err := r.db.Query(
 		"SELECT resource_id FROM server_resources WHERE server_id = ?",
@@ -601,13 +317,6 @@ func (r *ServerResourceRepository) GetResourcesByServer(serverID int64) ([]int64
 }
 
 // GetServersByResource retrieves all server IDs that use a specific resource.
-//
-// Example:
-//
-//	serverIDs, err := repo.GetServersByResource(5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerResourceRepository) GetServersByResource(resourceID int64) ([]int64, error) {
 	rows, err := r.db.Query(
 		"SELECT server_id FROM server_resources WHERE resource_id = ?",
@@ -633,13 +342,6 @@ func (r *ServerResourceRepository) GetServersByResource(resourceID int64) ([]int
 }
 
 // RemoveAllResourcesFromServer removes all resource associations from a server.
-//
-// Example:
-//
-//	err := repo.RemoveAllResourcesFromServer(1)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerResourceRepository) RemoveAllResourcesFromServer(serverID int64) error {
 	_, err := r.db.Exec(
 		"DELETE FROM server_resources WHERE server_id = ?",
@@ -666,13 +368,6 @@ func NewServerPromptRepository(db *sql.DB) *ServerPromptRepository {
 }
 
 // AddPrompt associates a prompt with a server.
-//
-// Example:
-//
-//	err := repo.AddPrompt(1, 5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerPromptRepository) AddPrompt(serverID, promptID int64) error {
 	_, err := r.db.Exec(
 		"INSERT INTO server_prompts (server_id, prompt_id) VALUES (?, ?)",
@@ -683,13 +378,6 @@ func (r *ServerPromptRepository) AddPrompt(serverID, promptID int64) error {
 }
 
 // RemovePrompt removes a prompt association from a server.
-//
-// Example:
-//
-//	err := repo.RemovePrompt(1, 5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerPromptRepository) RemovePrompt(serverID, promptID int64) error {
 	_, err := r.db.Exec(
 		"DELETE FROM server_prompts WHERE server_id = ? AND prompt_id = ?",
@@ -700,13 +388,6 @@ func (r *ServerPromptRepository) RemovePrompt(serverID, promptID int64) error {
 }
 
 // GetPromptsByServer retrieves all prompt IDs associated with a server.
-//
-// Example:
-//
-//	promptIDs, err := repo.GetPromptsByServer(1)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerPromptRepository) GetPromptsByServer(serverID int64) ([]int64, error) {
 	rows, err := r.db.Query(
 		"SELECT prompt_id FROM server_prompts WHERE server_id = ?",
@@ -732,13 +413,6 @@ func (r *ServerPromptRepository) GetPromptsByServer(serverID int64) ([]int64, er
 }
 
 // GetServersByPrompt retrieves all server IDs that use a specific prompt.
-//
-// Example:
-//
-//	serverIDs, err := repo.GetServersByPrompt(5)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerPromptRepository) GetServersByPrompt(promptID int64) ([]int64, error) {
 	rows, err := r.db.Query(
 		"SELECT server_id FROM server_prompts WHERE prompt_id = ?",
@@ -764,13 +438,6 @@ func (r *ServerPromptRepository) GetServersByPrompt(promptID int64) ([]int64, er
 }
 
 // RemoveAllPromptsFromServer removes all prompt associations from a server.
-//
-// Example:
-//
-//	err := repo.RemoveAllPromptsFromServer(1)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
 func (r *ServerPromptRepository) RemoveAllPromptsFromServer(serverID int64) error {
 	_, err := r.db.Exec(
 		"DELETE FROM server_prompts WHERE server_id = ?",

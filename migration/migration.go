@@ -112,12 +112,10 @@ func (m *Manager) removeMigration(version string) error {
 
 // Up runs all pending migrations
 func (m *Manager) Up() error {
-	// Create migrations table if it doesn't exist
 	if err := m.createMigrationsTable(); err != nil {
 		return err
 	}
 
-	// Sort migrations by version
 	sort.Slice(m.migrations, func(i, j int) bool {
 		return m.migrations[i].Version < m.migrations[j].Version
 	})
@@ -142,25 +140,21 @@ func (m *Manager) Up() error {
 			Str("description", migration.Description).
 			Msg("Running migration")
 
-		// Start transaction
 		tx, err := m.db.Begin()
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
 
-		// Run the migration
 		if err := migration.Up(m.db); err != nil {
 			tx.Rollback()
 			return fmt.Errorf("migration %s failed: %w", migration.Version, err)
 		}
 
-		// Record the migration
 		if err := m.recordMigration(migration.Version, migration.Description); err != nil {
 			tx.Rollback()
 			return err
 		}
 
-		// Commit transaction
 		if err := tx.Commit(); err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
@@ -185,12 +179,10 @@ func (m *Manager) Up() error {
 
 // Down rolls back the last migration
 func (m *Manager) Down() error {
-	// Create migrations table if it doesn't exist
 	if err := m.createMigrationsTable(); err != nil {
 		return err
 	}
 
-	// Get the last applied migration
 	var version, description string
 	err := m.db.QueryRow(`
 		SELECT version, description
@@ -207,7 +199,6 @@ func (m *Manager) Down() error {
 		return fmt.Errorf("failed to get last migration: %w", err)
 	}
 
-	// Find the migration
 	var migration *Migration
 	for i := range m.migrations {
 		if m.migrations[i].Version == version {
@@ -219,7 +210,6 @@ func (m *Manager) Down() error {
 	if migration == nil {
 		return fmt.Errorf("migration %s not found in registered migrations", version)
 	}
-
 	if migration.Down == nil {
 		return fmt.Errorf("migration %s has no down function", version)
 	}
@@ -229,25 +219,21 @@ func (m *Manager) Down() error {
 		Str("description", description).
 		Msg("Rolling back migration")
 
-	// Start transaction
 	tx, err := m.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
 
-	// Run the rollback
 	if err := migration.Down(m.db); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("rollback of migration %s failed: %w", version, err)
 	}
 
-	// Remove the migration record
 	if err := m.removeMigration(version); err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	// Commit transaction
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
@@ -261,12 +247,10 @@ func (m *Manager) Down() error {
 
 // Status shows the status of all migrations
 func (m *Manager) Status() error {
-	// Create migrations table if it doesn't exist
 	if err := m.createMigrationsTable(); err != nil {
 		return err
 	}
 
-	// Sort migrations by version
 	sort.Slice(m.migrations, func(i, j int) bool {
 		return m.migrations[i].Version < m.migrations[j].Version
 	})

@@ -12,7 +12,6 @@ import (
 )
 
 func TestUnitSQLiteConnection(t *testing.T) {
-	// Create a temporary SQLite database
 	tmpFile := "/tmp/test_mut.db"
 	defer os.Remove(tmpFile)
 
@@ -24,19 +23,15 @@ func TestUnitSQLiteConnection(t *testing.T) {
 	conn, err := NewConnection(config)
 	assert.NoError(t, err)
 	assert.NotNil(t, conn)
-
-	// Test ping
 	err = conn.Ping()
 	assert.NoError(t, err)
-
-	// Test close
 	err = conn.Close()
 	assert.NoError(t, err)
 }
 
 func TestUnitUnsupportedDriver(t *testing.T) {
 	config := Config{
-		Driver: "mysql", // Use an unsupported driver
+		Driver: "mysql",
 	}
 
 	conn, err := NewConnection(config)
@@ -46,10 +41,8 @@ func TestUnitUnsupportedDriver(t *testing.T) {
 }
 
 func TestUnitInitDBAndGetDB(t *testing.T) {
-	// Clean up any existing global connection
 	CloseDB()
 
-	// Create a temporary SQLite database
 	tmpFile := "/tmp/test_mut_global.db"
 	defer os.Remove(tmpFile)
 
@@ -58,32 +51,21 @@ func TestUnitInitDBAndGetDB(t *testing.T) {
 		DataSource: tmpFile,
 	}
 
-	// Test InitDB
 	err := InitDB(config)
 	assert.NoError(t, err)
-
-	// Test GetDB
 	db := GetDB()
 	assert.NotNil(t, db)
-
-	// Test that the connection is working
 	err = db.Ping()
 	assert.NoError(t, err)
-
-	// Test InitDB called twice (should not error)
 	err = InitDB(config)
 	assert.NoError(t, err)
-
-	// Test CloseDB
 	err = CloseDB()
 	assert.NoError(t, err)
 }
 
 func TestUnitGetDBBeforeInit(t *testing.T) {
-	// Clean up any existing global connection
 	CloseDB()
 
-	// GetDB should return nil if called before InitDB
 	db := GetDB()
 	assert.Nil(t, db)
 }

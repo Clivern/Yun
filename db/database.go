@@ -52,7 +52,6 @@ func NewConnection(config Config) (*Connection, error) {
 		)
 		db, err = sql.Open("postgres", dsn)
 	case "sqlite":
-		// Use DataSource if provided, otherwise default to database name
 		dsn = config.DataSource
 		if dsn == "" {
 			dsn = config.Database
@@ -66,7 +65,6 @@ func NewConnection(config Config) (*Connection, error) {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	// Set connection pool settings
 	if config.MaxOpenConns > 0 {
 		db.SetMaxOpenConns(config.MaxOpenConns)
 	}
@@ -77,7 +75,6 @@ func NewConnection(config Config) (*Connection, error) {
 		db.SetConnMaxLifetime(time.Duration(config.ConnMaxLifetime) * time.Second)
 	}
 
-	// Verify the connection
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}

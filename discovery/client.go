@@ -23,23 +23,6 @@ import (
 //   - Supports JSON and Server-Sent Events (SSE) responses
 //   - Supports authentication via HTTP headers
 //   - Headers can include: Authorization, X-API-Key, etc.
-//
-// Example usage with stdio (no auth):
-//
-//	client, err := NewStdioClient(StdioClientConfig{
-//	    Command: "python",
-//	    Args: []string{"-m", "mcp_server"},
-//	})
-//
-// Example usage with streamable HTTP (with auth):
-//
-//	client, err := NewStreamableHTTPClient(StreamableHTTPClientConfig{
-//	    URL: "https://api.example.com/mcp",
-//	    Headers: map[string]string{
-//	        "Authorization": "Bearer token123",
-//	        "X-API-Key": "key456",
-//	    },
-//	})
 type Client interface {
 	// Initialize initializes the MCP connection
 	Initialize(ctx context.Context) (*InitializeResult, error)

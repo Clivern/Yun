@@ -18,7 +18,6 @@ func setupSessionModuleTestDB(t *testing.T) *sql.DB {
 	testDB, err := sql.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
-	// Create users table
 	_, err = testDB.Exec(`
 		CREATE TABLE users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +33,6 @@ func setupSessionModuleTestDB(t *testing.T) *sql.DB {
 	`)
 	assert.NoError(t, err)
 
-	// Create sessions table
 	_, err = testDB.Exec(`
 		CREATE TABLE sessions (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +53,6 @@ func setupSessionModuleTestDB(t *testing.T) *sql.DB {
 
 func TestUnitSessionManager_CreateSession(t *testing.T) {
 	t.Run("Create session successfully", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -72,10 +69,8 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Act
 		session, err := sessionManager.CreateSession(user.ID, 24*time.Hour, "192.168.1.1", "Mozilla/5.0")
 
-		// Assert
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 		assert.NotEmpty(t, session.Token)
@@ -88,7 +83,6 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 	})
 
 	t.Run("Create session without optional fields", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -105,10 +99,8 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Act
 		session, err := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 
-		// Assert
 		assert.NoError(t, err)
 		assert.NotNil(t, session)
 		assert.NotEmpty(t, session.Token)
@@ -117,7 +109,6 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 	})
 
 	t.Run("Create session for non-existent user fails", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -125,17 +116,14 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 		sessionRepo := db.NewSessionRepository(testDB)
 		sessionManager := NewSessionManager(sessionRepo, userRepo)
 
-		// Act
 		session, err := sessionManager.CreateSession(999, 24*time.Hour, "", "")
 
-		// Assert
 		assert.Error(t, err)
 		assert.Nil(t, session)
 		assert.Contains(t, err.Error(), "user not found")
 	})
 
 	t.Run("Each session gets unique token", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -152,11 +140,9 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Act
 		session1, err1 := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 		session2, err2 := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 
-		// Assert
 		assert.NoError(t, err1)
 		assert.NoError(t, err2)
 		assert.NotEqual(t, session1.Token, session2.Token)
@@ -165,7 +151,6 @@ func TestUnitSessionManager_CreateSession(t *testing.T) {
 
 func TestUnitSessionManager_ValidateSession(t *testing.T) {
 	t.Run("Validate valid session", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -185,10 +170,8 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 		session, err := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 		assert.NoError(t, err)
 
-		// Act
 		validUser, validSession, err := sessionManager.ValidateSession(session.Token)
 
-		// Assert
 		assert.NoError(t, err)
 		assert.NotNil(t, validUser)
 		assert.NotNil(t, validSession)
@@ -197,7 +180,6 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 	})
 
 	t.Run("Validate expired session fails", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -214,7 +196,6 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create an already expired session
 		expiredSession := &db.Session{
 			Token:     "expired-token",
 			UserID:    user.ID,
@@ -223,10 +204,8 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
 
-		// Act
 		validUser, validSession, err := sessionManager.ValidateSession(expiredSession.Token)
 
-		// Assert
 		assert.Error(t, err)
 		assert.Nil(t, validUser)
 		assert.Nil(t, validSession)
@@ -234,7 +213,6 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 	})
 
 	t.Run("Validate non-existent session fails", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -242,10 +220,8 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 		sessionRepo := db.NewSessionRepository(testDB)
 		sessionManager := NewSessionManager(sessionRepo, userRepo)
 
-		// Act
 		validUser, validSession, err := sessionManager.ValidateSession("non-existent-token")
 
-		// Assert
 		assert.Error(t, err)
 		assert.Nil(t, validUser)
 		assert.Nil(t, validSession)
@@ -289,95 +265,8 @@ func TestUnitSessionManager_ValidateSession(t *testing.T) {
 	})
 }
 
-func TestUnitSessionManager_RefreshSession(t *testing.T) {
-	t.Run("Refresh session successfully", func(t *testing.T) {
-		// Arrange
-		testDB := setupSessionModuleTestDB(t)
-		defer testDB.Close()
-
-		userRepo := db.NewUserRepository(testDB)
-		sessionRepo := db.NewSessionRepository(testDB)
-		sessionManager := NewSessionManager(sessionRepo, userRepo)
-
-		user := &db.User{
-			Email:    "test@example.com",
-			Password: "hashedpassword",
-			Role:     "user",
-			IsActive: true,
-		}
-		err := userRepo.Create(user)
-		assert.NoError(t, err)
-
-		session, err := sessionManager.CreateSession(user.ID, 1*time.Hour, "", "")
-		assert.NoError(t, err)
-		oldExpiration := session.ExpiresAt
-
-		// Act
-		err = sessionManager.RefreshSession(session.Token, 48*time.Hour)
-
-		// Assert
-		assert.NoError(t, err)
-
-		refreshedSession, err := sessionRepo.GetByToken(session.Token)
-		assert.NoError(t, err)
-		assert.True(t, refreshedSession.ExpiresAt.After(oldExpiration))
-	})
-
-	t.Run("Refresh non-existent session fails", func(t *testing.T) {
-		// Arrange
-		testDB := setupSessionModuleTestDB(t)
-		defer testDB.Close()
-
-		userRepo := db.NewUserRepository(testDB)
-		sessionRepo := db.NewSessionRepository(testDB)
-		sessionManager := NewSessionManager(sessionRepo, userRepo)
-
-		// Act
-		err := sessionManager.RefreshSession("non-existent-token", 48*time.Hour)
-
-		// Assert
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "not found")
-	})
-}
-
-func TestUnitSessionManager_RevokeSession(t *testing.T) {
-	t.Run("Revoke session successfully", func(t *testing.T) {
-		// Arrange
-		testDB := setupSessionModuleTestDB(t)
-		defer testDB.Close()
-
-		userRepo := db.NewUserRepository(testDB)
-		sessionRepo := db.NewSessionRepository(testDB)
-		sessionManager := NewSessionManager(sessionRepo, userRepo)
-
-		user := &db.User{
-			Email:    "test@example.com",
-			Password: "hashedpassword",
-			Role:     "user",
-			IsActive: true,
-		}
-		err := userRepo.Create(user)
-		assert.NoError(t, err)
-
-		session, err := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
-		assert.NoError(t, err)
-
-		// Act
-		err = sessionManager.RevokeSession(session.Token)
-
-		// Assert
-		assert.NoError(t, err)
-
-		revokedSession, err := sessionRepo.GetByToken(session.Token)
-		assert.NoError(t, err)
-		assert.Nil(t, revokedSession)
-	})
-}
-
 func TestUnitSessionManager_RevokeUserSessions(t *testing.T) {
 	t.Run("Revoke all user sessions", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -394,16 +283,12 @@ func TestUnitSessionManager_RevokeUserSessions(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create multiple sessions
 		for i := 0; i < 3; i++ {
 			_, err := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 			assert.NoError(t, err)
 		}
 
-		// Act
 		err = sessionManager.RevokeUserSessions(user.ID)
-
-		// Assert
 		assert.NoError(t, err)
 
 		sessions, err := sessionRepo.GetByUserID(user.ID)
@@ -414,7 +299,6 @@ func TestUnitSessionManager_RevokeUserSessions(t *testing.T) {
 
 func TestUnitSessionManager_GetUserSessions(t *testing.T) {
 	t.Run("Get active user sessions", func(t *testing.T) {
-		// Arrange
 		testDB := setupSessionModuleTestDB(t)
 		defer testDB.Close()
 
@@ -431,13 +315,11 @@ func TestUnitSessionManager_GetUserSessions(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create active sessions
 		for i := 0; i < 2; i++ {
 			_, err := sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 			assert.NoError(t, err)
 		}
 
-		// Create expired session
 		expiredSession := &db.Session{
 			Token:     "expired",
 			UserID:    user.ID,
@@ -446,12 +328,9 @@ func TestUnitSessionManager_GetUserSessions(t *testing.T) {
 		err = sessionRepo.Create(expiredSession)
 		assert.NoError(t, err)
 
-		// Act
 		sessions, err := sessionManager.GetUserSessions(user.ID)
-
-		// Assert
 		assert.NoError(t, err)
-		assert.Len(t, sessions, 2) // Only active sessions
+		assert.Len(t, sessions, 2)
 	})
 }
 
@@ -474,7 +353,6 @@ func TestUnitSessionManager_CleanupExpiredSessions(t *testing.T) {
 		err := userRepo.Create(user)
 		assert.NoError(t, err)
 
-		// Create expired sessions
 		for i := 0; i < 3; i++ {
 			expiredSession := &db.Session{
 				Token:     "expired-" + string(rune(i)),
@@ -485,30 +363,24 @@ func TestUnitSessionManager_CleanupExpiredSessions(t *testing.T) {
 			assert.NoError(t, err)
 		}
 
-		// Create active session
 		_, err = sessionManager.CreateSession(user.ID, 24*time.Hour, "", "")
 		assert.NoError(t, err)
 
-		// Act
 		deleted, err := sessionManager.CleanupExpiredSessions()
-
-		// Assert
 		assert.NoError(t, err)
 		assert.Equal(t, int64(3), deleted)
 
 		count, err := sessionRepo.Count()
 		assert.NoError(t, err)
-		assert.Equal(t, int64(1), count) // Only active session remains
+		assert.Equal(t, int64(1), count)
 	})
 }
 
 func TestUnitGenerateSecureToken(t *testing.T) {
 	t.Run("Generate secure token", func(t *testing.T) {
-		// Act
 		token1, err1 := generateSecureToken(32)
 		token2, err2 := generateSecureToken(32)
 
-		// Assert
 		assert.NoError(t, err1)
 		assert.NoError(t, err2)
 		assert.NotEmpty(t, token1)
@@ -517,19 +389,16 @@ func TestUnitGenerateSecureToken(t *testing.T) {
 	})
 
 	t.Run("Generate token with different lengths", func(t *testing.T) {
-		// Act
 		token16, err16 := generateSecureToken(16)
 		token32, err32 := generateSecureToken(32)
 		token64, err64 := generateSecureToken(64)
 
-		// Assert
 		assert.NoError(t, err16)
 		assert.NoError(t, err32)
 		assert.NoError(t, err64)
 		assert.NotEmpty(t, token16)
 		assert.NotEmpty(t, token32)
 		assert.NotEmpty(t, token64)
-		// Longer byte arrays should generally produce longer base64 strings
 		assert.True(t, len(token64) > len(token32))
 		assert.True(t, len(token32) > len(token16))
 	})

@@ -17,8 +17,6 @@ const (
 )
 
 // User represents a user in the database.
-//
-// Users can have different roles: admin, user, or readonly.
 type User struct {
 	ID          int64
 	Email       string
@@ -42,16 +40,6 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 // Create inserts a new user into the database.
-//
-// Example:
-//
-//	user := &User{
-//		Email:    "user@example.com",
-//		Password: "hashed_password",
-//		Role:     "user",
-//		IsActive: true,
-//	}
-//	err := repo.Create(user)
 func (r *UserRepository) Create(user *User) error {
 	result, err := r.db.Exec(
 		`INSERT INTO users (email, password, role, api_key, is_active, last_login_at)

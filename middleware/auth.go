@@ -81,7 +81,6 @@ func SessionAuth() func(http.Handler) http.Handler {
 			log.Info().Str("path", r.URL.Path).Msg("Session validation successful")
 			// Store user and session in context
 			ctx := context.WithValue(r.Context(), ContextKeyUser, user)
-			// Call the next handler with the updated context
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

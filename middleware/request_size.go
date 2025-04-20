@@ -22,10 +22,8 @@ func RequestSizeLimit(maxBytes int64) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Limit the request body size
 			r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 
-			// Call the next handler
 			next.ServeHTTP(w, r)
 		})
 	}
