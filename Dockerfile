@@ -1,4 +1,4 @@
-FROM golang:1.20.4
+FROM golang:1.25.3
 
 ARG YUN_VERSION=0.3.0
 
