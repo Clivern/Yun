@@ -85,5 +85,45 @@ func (s *Setup) Install(options *SetupOptions) error {
 		return err
 	}
 
+	err = s.OptionRepository.Create("maintenance_mode", "0")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("gateway_description", "")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("smtp_server", "")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("smtp_port", "587")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("smtp_from_email", "")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("smtp_username", "")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("smtp_password", "")
+	if err != nil {
+		return err
+	}
+
+	err = s.OptionRepository.Create("smtp_use_tls", "0")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
