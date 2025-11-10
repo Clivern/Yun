@@ -45,6 +45,13 @@ func LoginAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !user.IsActive {
+		service.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
+			"errorMessage": "User is not active",
+		})
+		return
+	}
+
 	sessionManager := module.NewSessionManager(sessionRepo, userRepo)
 	session, err := sessionManager.CreateSession(
 		user.ID,

@@ -71,6 +71,8 @@ func SessionAuth() func(http.Handler) http.Handler {
 
 			user, _, err := sessionManager.ValidateSession(sessionToken)
 			if err != nil {
+				service.DeleteCookie(w, "_mut_session")
+				sessionManager.RevokeUserSessions(user.ID)
 				log.Info().Err(err).Str("path", r.URL.Path).Msg("Session validation failed")
 				service.WriteJSON(w, http.StatusUnauthorized, map[string]interface{}{
 					"errorMessage": "Invalid or expired session",
