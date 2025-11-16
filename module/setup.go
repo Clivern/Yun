@@ -45,7 +45,7 @@ func (s *Setup) IsInstalled() bool {
 // Install performs the initial gateway installation with the provided options.
 func (s *Setup) Install(options *SetupOptions) error {
 	if s.IsInstalled() {
-		return errors.New("Gateway is already installed")
+		return errors.New("gateway is already installed")
 	}
 
 	hashedPassword, err := service.HashPassword(options.AdminPassword)
