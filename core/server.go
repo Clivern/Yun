@@ -47,15 +47,34 @@ func Setup(Static embed.FS) http.Handler {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	r.Get("/api/v1/public/_health", api.HealthAction)
-	r.Get("/api/v1/public/_ready", api.ReadyAction)
-	r.Post("/api/v1/public/action/setup", api.SetupAction)
-	r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)
-	r.Post("/api/v1/public/action/login", api.LoginAction)
-	r.Post("/api/v1/public/action/logout", api.LogoutAction)
-	r.Get("/api/v1/action/profile", api.GetProfileAction)
-	r.Put("/api/v1/action/profile", api.UpdateProfileAction)
-	r.Put("/api/v1/action/settings", api.UpdateSettingsAction)
+	// Public Actions
+	r.Group(func(r chi.Router) {
+		r.Get("/api/v1/public/_health", api.HealthAction)
+		r.Get("/api/v1/public/_ready", api.ReadyAction)
+		r.Post("/api/v1/public/action/setup", api.SetupAction)
+		r.Get("/api/v1/public/action/setup/status", api.SetupStatusAction)
+		r.Post("/api/v1/public/action/login", api.LoginAction)
+		r.Post("/api/v1/public/action/logout", api.LogoutAction)
+	})
+	// Private Actions
+	r.Group(func(r chi.Router) {
+		r.Get("/api/v1/action/profile", api.GetProfileAction)
+		r.Put("/api/v1/action/profile", api.UpdateProfileAction)
+	})
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RequireRole(db.UserRoleUser))
+		r.Put("/api/v1/action/settings", api.UpdateSettingsAction)
+		r.Get("/api/v1/action/settings", api.GetSettingsAction)
+	})
+	// Users routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RequireRole(db.UserRoleAdmin))
+		r.Post("/api/v1/users", api.CreateUserAction)
+		r.Get("/api/v1/users", api.ListUsersAction)
+		r.Get("/api/v1/users/{id}", api.GetUserAction)
+		r.Put("/api/v1/users/{id}", api.UpdateUserAction)
+		r.Delete("/api/v1/users/{id}", api.DeleteUserAction)
+	})
 	r.With(middleware.BasicAuth(
 		viper.GetString("app.metrics.username"),
 		viper.GetString("app.metrics.secret"),
