@@ -10,19 +10,43 @@
             </div>
             <div class="hidden md:ml-8 md:flex md:space-x-1">
               <router-link
-                to="/admin/dashboard"
+                to="/dashboard"
                 class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
               </router-link>
               <router-link
-                to="/admin/users"
+                to="/gateways"
+                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              >
+                Gateways
+              </router-link>
+              <router-link
+                to="/mcps"
+                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              >
+                MCPs
+              </router-link>
+              <router-link
+                to="/servers"
+                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              >
+                Servers
+              </router-link>
+              <router-link
+                to="/tools"
+                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              >
+                Tools
+              </router-link>
+              <router-link
+                to="/users"
                 class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
               >
                 Users
               </router-link>
               <router-link
-                to="/admin/settings"
+                to="/settings"
                 class="bg-notion-hover text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium"
               >
                 Settings
@@ -67,12 +91,12 @@
           <div class="border-b border-notion-border mb-4"></div>
           <div class="space-y-4">
             <div>
-              <label for="applicationName" class="block text-sm font-medium text-notion-text mb-2">
-                Application Name
+              <label for="gatewayName" class="block text-sm font-medium text-notion-text mb-2">
+                Gateway Name
               </label>
               <input
-                id="applicationName"
-                v-model="form.applicationName"
+                id="gatewayName"
+                v-model="form.gatewayName"
                 type="text"
                 required
                 class="input-field max-w-md"
@@ -81,32 +105,45 @@
               >
             </div>
             <div>
-              <label for="applicationEmail" class="block text-sm font-medium text-notion-text mb-2">
-                Application Email
+              <label for="gatewayEmail" class="block text-sm font-medium text-notion-text mb-2">
+                Gateway Email
               </label>
               <input
-                id="applicationEmail"
-                v-model="form.applicationEmail"
+                id="gatewayEmail"
+                v-model="form.gatewayEmail"
                 type="email"
                 required
                 class="input-field max-w-md"
-                placeholder="admin@mut.com"
+                placeholder="admin@mut.ai"
                 :disabled="loading"
               >
             </div>
             <div>
-              <label for="applicationURL" class="block text-sm font-medium text-notion-text mb-2">
-                Application URL
+              <label for="gatewayURL" class="block text-sm font-medium text-notion-text mb-2">
+                Gateway URL
               </label>
               <input
-                id="applicationURL"
-                v-model="form.applicationURL"
+                id="gatewayURL"
+                v-model="form.gatewayURL"
                 type="url"
                 required
                 class="input-field max-w-md"
-                placeholder="http://mut.com"
+                placeholder="http://mut.ai"
                 :disabled="loading"
               >
+            </div>
+            <div>
+              <label for="gatewayDescription" class="block text-sm font-medium text-notion-text mb-2">
+                Gateway Description
+              </label>
+              <textarea
+                id="gatewayDescription"
+                v-model="form.gatewayDescription"
+                rows="4"
+                class="input-field max-w-md"
+                placeholder="Enter a description for your gateway"
+                :disabled="loading"
+              ></textarea>
             </div>
           </div>
         </div>
@@ -125,7 +162,7 @@
                 v-model="form.smtpServer"
                 type="text"
                 class="input-field max-w-md"
-                placeholder="smtp.mut.com"
+                placeholder="smtp.mut.ai"
                 :disabled="loading"
               >
             </div>
@@ -153,7 +190,7 @@
                 v-model="form.smtpFromEmail"
                 type="email"
                 class="input-field max-w-md"
-                placeholder="noreply@mut.com"
+                placeholder="noreply@mut.ai"
                 :disabled="loading"
               >
             </div>
@@ -257,9 +294,10 @@ const successMessage = ref(null)
 const errorMessage = ref(null)
 
 const form = reactive({
-  applicationURL: '',
-  applicationEmail: '',
-  applicationName: '',
+  gatewayURL: '',
+  gatewayEmail: '',
+  gatewayName: '',
+  gatewayDescription: '',
   maintenanceMode: false,
   smtpServer: '',
   smtpPort: '',
@@ -284,9 +322,10 @@ const loadSettings = async () => {
 
     if (settings) {
       // Map API response (snake_case) to form fields
-      form.applicationURL = settings.gateway_url || ''
-      form.applicationEmail = settings.gateway_email || ''
-      form.applicationName = settings.gateway_name || ''
+      form.gatewayURL = settings.gateway_url || ''
+      form.gatewayEmail = settings.gateway_email || ''
+      form.gatewayName = settings.gateway_name || ''
+      form.gatewayDescription = settings.gateway_description || ''
       form.maintenanceMode = settings.maintenance_mode === '1'
       form.smtpServer = settings.smtp_server || ''
       form.smtpPort = settings.smtp_port || ''
@@ -324,10 +363,10 @@ const handleSave = async () => {
   try {
     // Map form fields to API request format (camelCase)
     const payload = {
-      gatewayName: form.applicationName,
-      gatewayUrl: form.applicationURL,
-      gatewayEmail: form.applicationEmail,
-      gatewayDescription: '', // Not in form, but API expects it
+      gatewayName: form.gatewayName,
+      gatewayUrl: form.gatewayURL,
+      gatewayEmail: form.gatewayEmail,
+      gatewayDescription: form.gatewayDescription,
       maintenanceMode: form.maintenanceMode,
       smtpUseTLS: form.smtpUseTLS
     }
