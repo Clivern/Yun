@@ -72,7 +72,7 @@
       <!-- Page Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-semibold text-notion-text">Settings</h1>
-        <p class="text-sm text-notion-textLight mt-2">Manage application settings and preferences</p>
+        <p class="text-sm text-notion-textLight mt-2">Manage gateway settings and preferences</p>
       </div>
 
       <!-- Success/Error Messages -->
