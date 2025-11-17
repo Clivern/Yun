@@ -38,7 +38,6 @@ type CreateUserOptions struct {
 
 // CreateUser creates a new user.
 func (u *User) CreateUser(options *CreateUserOptions) (*db.User, error) {
-	// Check if user with email already exists
 	existingUser, err := u.UserRepository.GetByEmail(options.Email)
 	if err != nil {
 		return nil, err
@@ -91,7 +90,6 @@ type UpdateUserOptions struct {
 
 // UpdateUser updates an existing user.
 func (u *User) UpdateUser(options *UpdateUserOptions) (*db.User, error) {
-	// Get existing user
 	user, err := u.UserRepository.GetByID(options.UserID)
 	if err != nil {
 		return nil, err
@@ -100,7 +98,6 @@ func (u *User) UpdateUser(options *UpdateUserOptions) (*db.User, error) {
 		return nil, ErrUserNotFound
 	}
 
-	// Check if email is being changed and if it's already taken
 	if options.Email != user.Email {
 		existingUser, err := u.UserRepository.GetByEmail(options.Email)
 		if err != nil {
@@ -163,7 +160,6 @@ func (u *User) ListUsers(options *ListUsersOptions) (*ListUsersResult, error) {
 
 // DeleteUser deletes a user by ID.
 func (u *User) DeleteUser(userID int64) error {
-	// Check if user exists
 	user, err := u.UserRepository.GetByID(userID)
 	if err != nil {
 		return err
@@ -172,6 +168,5 @@ func (u *User) DeleteUser(userID int64) error {
 		return ErrUserNotFound
 	}
 
-	// Delete user
 	return u.UserRepository.Delete(userID)
 }
