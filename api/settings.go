@@ -21,7 +21,7 @@ type UpdateSettingsRequest struct {
 	GatewayEmail       string `json:"gatewayEmail" validate:"required,email,max=255" label:"Gateway Email"`
 	GatewayDescription string `json:"gatewayDescription" validate:"max=1024" label:"Gateway Description"`
 	SMTPServer         string `json:"smtpServer" validate:"omitempty,max=255" label:"SMTP Server"`
-	SMTPPort           int    `json:"smtpPort" validate:"required,gte=1,lte=65535" label:"SMTP Port"`
+	SMTPPort           int    `json:"smtpPort" validate:"omitempty,gte=1,lte=65535" label:"SMTP Port"`
 	SMTPFromEmail      string `json:"smtpFromEmail" validate:"omitempty,email,max=255" label:"SMTP From Email"`
 	SMTPUsername       string `json:"smtpUsername" validate:"omitempty,max=255" label:"SMTP Username"`
 	SMTPPassword       string `json:"smtpPassword" validate:"omitempty,max=255" label:"SMTP Password"`

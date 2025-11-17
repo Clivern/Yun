@@ -68,3 +68,9 @@ export const userAPI = {
   updateUser: (id, data) => api.put(`/users/${id}`, data),
   deleteUser: (id) => api.delete(`/users/${id}`),
 }
+
+// API endpoints for settings
+export const settingsAPI = {
+  getSettings: () => api.get('/action/settings'),
+  updateSettings: (data) => api.put('/action/settings', data),
+}

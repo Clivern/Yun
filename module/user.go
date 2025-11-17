@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// User module errors
 var (
 	ErrUserNotFound           = errors.New("user not found")
 	ErrUserEmailAlreadyExists = errors.New("user with this email already exists")

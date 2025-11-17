@@ -10,43 +10,19 @@
             </div>
             <div class="hidden md:ml-8 md:flex md:space-x-1">
               <router-link
-                to="/dashboard"
+                to="/admin/dashboard"
                 class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
               </router-link>
               <router-link
-                to="/gateways"
-                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-              >
-                Gateways
-              </router-link>
-              <router-link
-                to="/mcps"
-                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-              >
-                MCPs
-              </router-link>
-              <router-link
-                to="/servers"
-                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-              >
-                Servers
-              </router-link>
-              <router-link
-                to="/tools"
-                class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-              >
-                Tools
-              </router-link>
-              <router-link
-                to="/users"
+                to="/admin/users"
                 class="text-notion-textLight hover:bg-notion-hover hover:text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
               >
                 Users
               </router-link>
               <router-link
-                to="/settings"
+                to="/admin/settings"
                 class="bg-notion-hover text-notion-text inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium"
               >
                 Settings
@@ -72,205 +48,187 @@
       <!-- Page Header -->
       <div class="mb-8">
         <h1 class="text-3xl font-semibold text-notion-text">Settings</h1>
-        <p class="text-sm text-notion-textLight mt-2">Manage gateway settings and preferences</p>
+        <p class="text-sm text-notion-textLight mt-2">Manage application settings and preferences</p>
       </div>
 
-      <!-- Settings Sections -->
-      <div class="space-y-6">
-        <!-- General Settings -->
+      <!-- Success/Error Messages -->
+      <div v-if="successMessage" class="mb-6 rounded-md border border-green-200 bg-green-50 p-4">
+        <p class="text-sm text-green-800">{{ successMessage }}</p>
+      </div>
+      <div v-if="errorMessage" class="mb-6 rounded-md border border-red-200 bg-red-50 p-4">
+        <p class="text-sm text-red-800">{{ errorMessage }}</p>
+      </div>
+
+      <!-- Settings Form -->
+      <form @submit.prevent="handleSave" class="space-y-6">
+        <!-- General Settings Box -->
         <div class="bg-white rounded-lg border border-notion-border p-6 shadow-sm">
-          <h2 class="text-lg font-semibold text-notion-text mb-5">General</h2>
-          <div class="space-y-5">
-            <!-- Gateway Name -->
+          <h2 class="text-lg font-semibold text-notion-text mb-4">General</h2>
+          <div class="border-b border-notion-border mb-4"></div>
+          <div class="space-y-4">
             <div>
-              <label for="gateway-name" class="block text-sm font-medium text-notion-text mb-2">
-                Gateway Name
+              <label for="applicationName" class="block text-sm font-medium text-notion-text mb-2">
+                Application Name
               </label>
               <input
-                id="gateway-name"
-                v-model="settings.gatewayName"
+                id="applicationName"
+                v-model="form.applicationName"
                 type="text"
+                required
                 class="input-field max-w-md"
-                placeholder="My Gateway"
+                placeholder="Mut"
+                :disabled="loading"
               >
-              <p class="text-xs text-notion-textLight mt-1.5">The name displayed throughout the application</p>
             </div>
-
-            <!-- Gateway URL -->
             <div>
-              <label for="gateway-url" class="block text-sm font-medium text-notion-text mb-2">
-                Gateway URL
+              <label for="applicationEmail" class="block text-sm font-medium text-notion-text mb-2">
+                Application Email
               </label>
               <input
-                id="gateway-url"
-                v-model="settings.gatewayUrl"
-                type="url"
-                class="input-field max-w-md"
-                placeholder="https://mut.com"
-              >
-              <p class="text-xs text-notion-textLight mt-1.5">The public URL where this application is accessible</p>
-            </div>
-
-            <!-- Gateway Email -->
-            <div>
-              <label for="gateway-email" class="block text-sm font-medium text-notion-text mb-2">
-                Gateway Email
-              </label>
-              <input
-                id="gateway-email"
-                v-model="settings.gatewayEmail"
+                id="applicationEmail"
+                v-model="form.applicationEmail"
                 type="email"
+                required
                 class="input-field max-w-md"
-                placeholder="admin@example.com"
+                placeholder="admin@mut.com"
+                :disabled="loading"
               >
-              <p class="text-xs text-notion-textLight mt-1.5">Primary contact email displayed in notifications</p>
             </div>
-
-            <!-- Description -->
             <div>
-              <label for="gateway-description" class="block text-sm font-medium text-notion-text mb-2">
-                Description
+              <label for="applicationURL" class="block text-sm font-medium text-notion-text mb-2">
+                Application URL
               </label>
-              <textarea
-                id="gateway-description"
-                v-model="settings.gatewayDescription"
-                rows="3"
-                class="input-field max-w-2xl"
-                placeholder="A brief description of your gateway..."
-              ></textarea>
-              <p class="text-xs text-notion-textLight mt-1.5">Optional description for your gateway</p>
+              <input
+                id="applicationURL"
+                v-model="form.applicationURL"
+                type="url"
+                required
+                class="input-field max-w-md"
+                placeholder="http://mut.com"
+                :disabled="loading"
+              >
             </div>
           </div>
         </div>
 
-        <!-- SMTP Settings -->
+        <!-- SMTP Configuration Box -->
         <div class="bg-white rounded-lg border border-notion-border p-6 shadow-sm">
-          <h2 class="text-lg font-semibold text-notion-text mb-5">SMTP</h2>
-          <div class="space-y-5">
-            <!-- SMTP Server -->
+          <h2 class="text-lg font-semibold text-notion-text mb-4">SMTP Configuration</h2>
+          <div class="border-b border-notion-border mb-4"></div>
+          <div class="space-y-4">
             <div>
-              <label for="smtp-server" class="block text-sm font-medium text-notion-text mb-2">
+              <label for="smtpServer" class="block text-sm font-medium text-notion-text mb-2">
                 SMTP Server
               </label>
               <input
-                id="smtp-server"
-                v-model="settings.smtpServer"
+                id="smtpServer"
+                v-model="form.smtpServer"
                 type="text"
                 class="input-field max-w-md"
-                placeholder="smtp.example.com"
+                placeholder="smtp.mut.com"
+                :disabled="loading"
               >
             </div>
 
-            <!-- SMTP Port -->
             <div>
-              <label for="smtp-port" class="block text-sm font-medium text-notion-text mb-2">
+              <label for="smtpPort" class="block text-sm font-medium text-notion-text mb-2">
                 SMTP Port
               </label>
               <input
-                id="smtp-port"
-                v-model="settings.smtpPort"
-                type="number"
-                min="1"
-                max="65535"
+                id="smtpPort"
+                v-model="form.smtpPort"
+                type="text"
                 class="input-field max-w-xs"
                 placeholder="587"
+                :disabled="loading"
               >
             </div>
 
-            <!-- From Email -->
             <div>
-              <label for="smtp-from-email" class="block text-sm font-medium text-notion-text mb-2">
-                From Email
+              <label for="smtpFromEmail" class="block text-sm font-medium text-notion-text mb-2">
+                SMTP From Email
               </label>
               <input
-                id="smtp-from-email"
-                v-model="settings.smtpFromEmail"
+                id="smtpFromEmail"
+                v-model="form.smtpFromEmail"
                 type="email"
                 class="input-field max-w-md"
-                placeholder="noreply@example.com"
+                placeholder="noreply@mut.com"
+                :disabled="loading"
               >
-              <p class="text-xs text-notion-textLight mt-1.5">Email address used as the sender for notifications</p>
             </div>
 
-            <!-- SMTP Username -->
             <div>
-              <label for="smtp-username" class="block text-sm font-medium text-notion-text mb-2">
+              <label for="smtpUsername" class="block text-sm font-medium text-notion-text mb-2">
                 SMTP Username
               </label>
               <input
-                id="smtp-username"
-                v-model="settings.smtpUsername"
+                id="smtpUsername"
+                v-model="form.smtpUsername"
                 type="text"
                 class="input-field max-w-md"
-                placeholder="user@example.com"
+                placeholder="smtpuser"
+                :disabled="loading"
               >
             </div>
 
-            <!-- SMTP Password -->
             <div>
-              <label for="smtp-password" class="block text-sm font-medium text-notion-text mb-2">
+              <label for="smtpPassword" class="block text-sm font-medium text-notion-text mb-2">
                 SMTP Password
               </label>
               <input
-                id="smtp-password"
-                v-model="settings.smtpPassword"
+                id="smtpPassword"
+                v-model="form.smtpPassword"
                 type="password"
                 class="input-field max-w-md"
-                placeholder="••••••••"
+                placeholder="Enter SMTP password"
+                :disabled="loading"
               >
             </div>
 
-            <!-- Use TLS -->
             <div class="flex items-start">
               <input
-                id="smtp-use-tls"
-                v-model="settings.smtpUseTLS"
+                id="smtpUseTLS"
+                v-model="form.smtpUseTLS"
                 type="checkbox"
                 class="h-4 w-4 mt-1 rounded text-notion-text focus:ring-notion-text border-notion-border"
+                :disabled="loading"
               >
-              <label for="smtp-use-tls" class="ml-3 block">
+              <label for="smtpUseTLS" class="ml-3 block">
                 <span class="text-sm font-medium text-notion-text">Use TLS</span>
-                <p class="text-xs text-notion-textLight mt-1">Enable TLS when connecting to the SMTP server</p>
+                <p class="text-xs text-notion-textLight mt-1">Enable TLS for SMTP connection</p>
               </label>
             </div>
           </div>
         </div>
 
-        <!-- Maintenance Mode -->
+        <!-- Maintenance Mode Box -->
         <div class="bg-white rounded-lg border border-notion-border p-6 shadow-sm">
-          <h2 class="text-lg font-semibold text-notion-text mb-5">Maintenance</h2>
-          <div class="space-y-5">
-            <!-- Maintenance Mode Toggle -->
-            <div class="flex items-start">
-              <input
-                id="maintenance-mode"
-                v-model="settings.maintenanceMode"
-                type="checkbox"
-                class="h-4 w-4 mt-1 rounded text-notion-text focus:ring-notion-text border-notion-border"
-              >
-              <label for="maintenance-mode" class="ml-3 block">
-                <span class="text-sm font-medium text-notion-text">Enable Maintenance Mode</span>
-                <p class="text-xs text-notion-textLight mt-1">Put the application in maintenance mode (only admins can access)</p>
-              </label>
-            </div>
+          <h2 class="text-lg font-semibold text-notion-text mb-4">Maintenance</h2>
+          <div class="border-b border-notion-border mb-4"></div>
+          <div class="flex items-start">
+            <input
+              id="maintenanceMode"
+              v-model="form.maintenanceMode"
+              type="checkbox"
+              class="h-4 w-4 mt-1 rounded text-notion-text focus:ring-notion-text border-notion-border"
+              :disabled="loading"
+            >
+            <label for="maintenanceMode" class="ml-3 block">
+              <span class="text-sm font-medium text-notion-text">Enable Maintenance Mode</span>
+              <p class="text-xs text-notion-textLight mt-1">Put the application in maintenance mode</p>
+            </label>
           </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-end gap-3 pt-2">
+        <!-- Submit Button -->
+        <div class="flex justify-end gap-3">
           <button
-            @click="handleReset"
-            class="btn-secondary"
-            :disabled="saving"
-          >
-            Reset to Defaults
-          </button>
-          <button
-            @click="handleSave"
+            type="submit"
             class="btn-primary"
-            :disabled="saving"
+            :disabled="loading"
           >
-            <span v-if="!saving">Save Changes</span>
+            <span v-if="!loading">Save Settings</span>
             <span v-else class="flex items-center">
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -280,48 +238,35 @@
             </span>
           </button>
         </div>
-
-        <!-- Success/Error Messages -->
-        <div v-if="successMessage" class="rounded-md border border-green-200 bg-green-50 p-4">
-          <p class="text-sm text-green-800">{{ successMessage }}</p>
-        </div>
-        <div v-if="errorMessage" class="rounded-md border border-red-200 bg-red-50 p-4">
-          <p class="text-sm text-red-800">{{ errorMessage }}</p>
-        </div>
-      </div>
+      </form>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { settingsAPI } from '@/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const saving = ref(false)
+const loading = ref(false)
 const successMessage = ref(null)
 const errorMessage = ref(null)
 
-const settings = reactive({
-  // General
-  gatewayName: 'Mut Gateway',
-  gatewayUrl: 'https://gateway.example.com',
-  gatewayEmail: 'admin@example.com',
-  gatewayDescription: '',
-
-  // SMTP
+const form = reactive({
+  applicationURL: '',
+  applicationEmail: '',
+  applicationName: '',
+  maintenanceMode: false,
   smtpServer: '',
-  smtpPort: 587,
+  smtpPort: '',
   smtpFromEmail: '',
   smtpUsername: '',
   smtpPassword: '',
-  smtpUseTLS: false,
-
-  // Maintenance
-  maintenanceMode: false
+  smtpUseTLS: true
 })
 
 const handleLogout = () => {
@@ -329,52 +274,97 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+const loadSettings = async () => {
+  loading.value = true
+  errorMessage.value = null
+
+  try {
+    const response = await settingsAPI.getSettings()
+    const settings = response.data?.settings
+
+    if (settings) {
+      // Map API response (snake_case) to form fields
+      form.applicationURL = settings.gateway_url || ''
+      form.applicationEmail = settings.gateway_email || ''
+      form.applicationName = settings.gateway_name || ''
+      form.maintenanceMode = settings.maintenance_mode === '1'
+      form.smtpServer = settings.smtp_server || ''
+      form.smtpPort = settings.smtp_port || ''
+      form.smtpFromEmail = settings.smtp_from_email || ''
+      form.smtpUsername = settings.smtp_username || ''
+      form.smtpPassword = settings.smtp_password || ''
+      form.smtpUseTLS = settings.smtp_use_tls === '1'
+    }
+  } catch (err) {
+    console.error('Failed to load settings:', err)
+    errorMessage.value = err.response?.data?.errorMessage || 'Failed to load settings'
+  } finally {
+    loading.value = false
+  }
+}
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// Watch for message changes and scroll to top
+watch([successMessage, errorMessage], () => {
+  if (successMessage.value || errorMessage.value) {
+    nextTick(() => {
+      scrollToTop()
+    })
+  }
+})
+
 const handleSave = async () => {
-  saving.value = true
+  loading.value = true
   successMessage.value = null
   errorMessage.value = null
 
   try {
-    // TODO: Add API call to save settings
-    // await settingsAPI.update(settings)
+    // Map form fields to API request format (camelCase)
+    const payload = {
+      gatewayName: form.applicationName,
+      gatewayUrl: form.applicationURL,
+      gatewayEmail: form.applicationEmail,
+      gatewayDescription: '', // Not in form, but API expects it
+      maintenanceMode: form.maintenanceMode,
+      smtpUseTLS: form.smtpUseTLS
+    }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Only include SMTP fields if they have values
+    if (form.smtpServer) { payload.smtpServer = form.smtpServer }
+    if (form.smtpPort) { payload.smtpPort = parseInt(form.smtpPort, 10) || 587 }
+    if (form.smtpFromEmail) { payload.smtpFromEmail = form.smtpFromEmail }
+    if (form.smtpUsername) { payload.smtpUsername = form.smtpUsername }
+    if (form.smtpPassword) { payload.smtpPassword = form.smtpPassword }
 
-    successMessage.value = 'Settings saved successfully!'
+    const response = await settingsAPI.updateSettings(payload)
 
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = null
-    }, 3000)
+    if (response.data?.successMessage) {
+      successMessage.value = response.data.successMessage
+      setTimeout(() => {
+        successMessage.value = null
+      }, 3000)
+    }
   } catch (err) {
     console.error('Failed to save settings:', err)
-    errorMessage.value = 'Failed to save settings. Please try again.'
+    if (err.response?.data?.errorMessage) {
+      errorMessage.value = err.response.data.errorMessage
+    } else if (err.response?.data?.errors) {
+      // Handle validation errors
+      const errors = err.response.data.errors
+      const errorList = Object.values(errors).flat().join(', ')
+      errorMessage.value = `Validation errors: ${errorList}`
+    } else {
+      errorMessage.value = 'Failed to save settings. Please try again.'
+    }
   } finally {
-    saving.value = false
+    loading.value = false
   }
 }
 
-const handleReset = () => {
-  if (confirm('Are you sure you want to reset all settings to their default values?')) {
-    // Reset to default values
-    settings.gatewayName = 'Mut Gateway'
-    settings.gatewayUrl = 'https://gateway.example.com'
-    settings.gatewayEmail = 'admin@example.com'
-    settings.gatewayDescription = ''
-    settings.smtpServer = ''
-    settings.smtpPort = 587
-    settings.smtpFromEmail = ''
-    settings.smtpUsername = ''
-    settings.smtpPassword = ''
-    settings.smtpUseTLS = false
-    settings.maintenanceMode = false
-
-    successMessage.value = 'Settings reset to defaults'
-    setTimeout(() => {
-      successMessage.value = null
-    }, 3000)
-  }
-}
+onMounted(() => {
+  loadSettings()
+})
 </script>
-
