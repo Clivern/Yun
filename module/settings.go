@@ -71,73 +71,29 @@ func boolToOption(value bool) string {
 
 // GetSettings retrieves the current settings from the options repository.
 func (s *Settings) GetSettings() (map[string]string, error) {
-	settings := make(map[string]string)
-
-	gatewayName, err := s.OptionRepository.Get("gateway_name")
-	if err != nil {
-		return nil, err
+	keys := []string{
+		"gateway_name",
+		"gateway_url",
+		"gateway_email",
+		"gateway_description",
+		"smtp_server",
+		"smtp_port",
+		"smtp_from_email",
+		"smtp_username",
+		"smtp_password",
+		"smtp_use_tls",
+		"maintenance_mode",
 	}
-	settings["gateway_name"] = gatewayName.Value
 
-	gatewayURL, err := s.OptionRepository.Get("gateway_url")
-	if err != nil {
-		return nil, err
-	}
-	settings["gateway_url"] = gatewayURL.Value
+	settings := make(map[string]string, len(keys))
 
-	gatewayEmail, err := s.OptionRepository.Get("gateway_email")
-	if err != nil {
-		return nil, err
+	for _, key := range keys {
+		option, err := s.OptionRepository.Get(key)
+		if err != nil {
+			return nil, err
+		}
+		settings[key] = option.Value
 	}
-	settings["gateway_email"] = gatewayEmail.Value
-
-	gatewayDescription, err := s.OptionRepository.Get("gateway_description")
-	if err != nil {
-		return nil, err
-	}
-	settings["gateway_description"] = gatewayDescription.Value
-
-	smtpServer, err := s.OptionRepository.Get("smtp_server")
-	if err != nil {
-		return nil, err
-	}
-	settings["smtp_server"] = smtpServer.Value
-
-	smtpPort, err := s.OptionRepository.Get("smtp_port")
-	if err != nil {
-		return nil, err
-	}
-	settings["smtp_port"] = smtpPort.Value
-
-	smtpFromEmail, err := s.OptionRepository.Get("smtp_from_email")
-	if err != nil {
-		return nil, err
-	}
-	settings["smtp_from_email"] = smtpFromEmail.Value
-
-	smtpUsername, err := s.OptionRepository.Get("smtp_username")
-	if err != nil {
-		return nil, err
-	}
-	settings["smtp_username"] = smtpUsername.Value
-
-	smtpPassword, err := s.OptionRepository.Get("smtp_password")
-	if err != nil {
-		return nil, err
-	}
-	settings["smtp_password"] = smtpPassword.Value
-
-	smtpUseTLS, err := s.OptionRepository.Get("smtp_use_tls")
-	if err != nil {
-		return nil, err
-	}
-	settings["smtp_use_tls"] = smtpUseTLS.Value
-
-	maintenanceMode, err := s.OptionRepository.Get("maintenance_mode")
-	if err != nil {
-		return nil, err
-	}
-	settings["maintenance_mode"] = maintenanceMode.Value
 
 	return settings, nil
 }

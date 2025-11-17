@@ -73,6 +73,7 @@ func GetSettingsAction(w http.ResponseWriter, _ *http.Request) {
 
 	settingsModule := module.NewSettings(db.NewOptionRepository(db.GetDB()))
 	settings, err := settingsModule.GetSettings()
+
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get settings")
 		service.WriteJSON(w, http.StatusInternalServerError, map[string]interface{}{
@@ -80,6 +81,7 @@ func GetSettingsAction(w http.ResponseWriter, _ *http.Request) {
 		})
 		return
 	}
+
 	service.WriteJSON(w, http.StatusOK, map[string]interface{}{
 		"settings": settings,
 	})
