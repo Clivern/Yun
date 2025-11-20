@@ -26,7 +26,7 @@
               minlength="2"
               maxlength="50"
               class="input-field"
-              placeholder="My Gateway"
+              placeholder="Mut"
               :disabled="loading"
             >
             <p class="text-xs text-notion-textLight mt-1.5">A friendly name for this gateway</p>
@@ -43,7 +43,7 @@
               type="url"
               required
               class="input-field"
-              placeholder="https://gateway.example.com"
+              placeholder="http://mut.ai"
               :disabled="loading"
             >
             <p class="text-xs text-notion-textLight mt-1.5">The public URL where this gateway will be accessible</p>
@@ -60,7 +60,7 @@
               type="email"
               required
               class="input-field"
-              placeholder="gateway@mut.com"
+              placeholder="admin@mut.ai"
               :disabled="loading"
             >
             <p class="text-xs text-notion-textLight mt-1.5">The contact email for this gateway</p>
@@ -87,7 +87,7 @@
               type="email"
               required
               class="input-field"
-              placeholder="admin@mut.com"
+              placeholder="hello@mut.ai"
               :disabled="loading"
             >
             <p class="text-xs text-notion-textLight mt-1.5">The email address for the admin account</p>
